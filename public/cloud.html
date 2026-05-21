@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Flux Cloud | Espace Client</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231A56DB'/%3E%3Cpath d='M33 75V25h34v12H47v10h16v12H47v16z' fill='%23ffffff'/%3E%3C/svg%3E">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { background: "#EFF6FF", surface: "rgba(255,255,255,0.75)", primary: "#1A56DB", primary_dark: "#00eefc", error: "#EF4444", secondary: "#3B82F6", tertiary: "#F59E0B" }, fontFamily: { 'space': ['Poppins', 'sans-serif'], 'manrope': ['Plus Jakarta Sans', 'sans-serif'] } } } }
+    </script>
+    <style>
+        /* THEME FLUX SOFTWARE (LIGHT & DARK) */
+        :root {
+            --bg-grad-1: #EFF6FF; --bg-grad-2: #DBEAFE;
+            --mesh-1: rgba(59,130,246,0.18); --mesh-2: rgba(26,86,219,0.12);
+            --glass-bg: rgba(255,255,255,0.85); --glass-border: rgba(255, 255, 255, 0.95);
+            --modal-bg: rgba(255,255,255,0.98); --modal-shadow: rgba(7,30,82,0.18);
+        }
+        .dark {
+            --bg-grad-1: #08090a; --bg-grad-2: #08090a;
+            --mesh-1: rgba(0, 238, 252, 0.1); --mesh-2: rgba(172, 137, 255, 0.1);
+            --glass-bg: rgba(18, 19, 24, 0.65); --glass-border: rgba(255, 255, 255, 0.05);
+            --modal-bg: rgba(18, 19, 24, 0.98); --modal-shadow: rgba(0, 238, 252, 0.1);
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-grad-1); overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        
+        .bg-mesh{position:fixed;inset:0;z-index:-1;background:linear-gradient(135deg,var(--bg-grad-1) 0%,var(--bg-grad-2) 40%,var(--bg-grad-1) 100%); transition: background 0.3s;}
+        .bg-mesh::before{content:'';position:absolute;width:900px;height:900px;top:-300px;right:-200px;background:radial-gradient(circle,var(--mesh-1) 0%,transparent 70%);animation:floatOrb 12s ease-in-out infinite alternate}
+        .bg-mesh::after{content:'';position:absolute;width:700px;height:700px;bottom:-200px;left:-100px;background:radial-gradient(circle,var(--mesh-2) 0%,transparent 70%);animation:floatOrb 15s ease-in-out infinite alternate-reverse}
+        @keyframes floatOrb{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,30px) scale(1.08)}}
+
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.04); transition: background 0.3s, border 0.3s; }
+        .glass-modal { background: var(--modal-bg); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid var(--glass-border); box-shadow: 0 24px 64px var(--modal-shadow); }
+        .hide { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #333; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+        .dark .text-primary-dyn { color: var(--primary_dark); }
+        .text-primary-dyn { color: var(--primary); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center relative selection:bg-primary selection:text-white dark:text-white text-[#0C1A3A] transition-colors duration-300">
+    <div class="bg-mesh"></div>
+
+    <div class="fixed top-4 left-4 md:top-6 md:left-6 z-[200]">
+        <a href="/" class="flex items-center gap-1.5 bg-white/80 dark:bg-[#121318]/80 backdrop-blur-md border border-white dark:border-white/10 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary_dark transition-all shadow-lg">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span> Retour
+        </a>
+    </div>
+
+    <div class="fixed top-4 right-4 md:top-6 md:right-6 z-[200]">
+        <button onclick="toggleTheme()" class="flex items-center justify-center w-10 h-10 bg-white/80 dark:bg-[#121318]/80 backdrop-blur-md border border-white dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary_dark transition-all shadow-lg">
+            <span id="theme-icon" class="material-symbols-outlined text-[20px]">dark_mode</span>
+        </button>
+    </div>
+
+    <div id="toast" class="fixed top-20 right-4 md:right-6 transform translate-x-[150%] transition-transform duration-300 bg-error text-white px-5 py-3.5 rounded-xl font-bold flex items-center gap-3 z-[100] shadow-lg text-sm w-[calc(100%-2rem)] md:w-auto">
+        <span class="material-symbols-outlined">error</span><span id="toast-msg">Erreur!</span>
+    </div>
+
+    <div id="login-screen" class="w-full max-w-[420px] p-6 pt-24 md:pt-32 z-10 transition-all duration-500 mx-auto">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-[1.5rem] bg-white dark:bg-[#121318] border border-white dark:border-white/10 shadow-xl dark:shadow-[0_0_40px_rgba(0,238,252,0.15)] mb-6">
+                <svg viewBox="0 0 60 60" fill="none" class="w-12 h-12 dark:hidden"><path d="M20 22C20 22 28 18 36 24C44 30 44 38 36 42" stroke="#1A56DB" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M40 20C40 20 32 18 24 26C16 34 18 42 26 44" stroke="#60A5FA" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M37 37L44 32L44 44Z" fill="#1A56DB"/></svg>
+                <span class="material-symbols-outlined hidden dark:block text-[#00eefc] text-4xl">fingerprint</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold font-space tracking-tight mb-2 text-[#071E52] dark:text-white">Flux Cloud</h1>
+            <p class="text-[#4B6CB7] dark:text-gray-400 text-sm font-medium">Connexion à votre espace base de données</p>
+        </div>
+        
+        <div class="glass-card rounded-[2rem] p-6 md:p-8 shadow-2xl">
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">ID Client (FluxTerminal)</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] group-focus-within:text-primary dark:group-focus-within:text-primary_dark transition-colors">storefront</span>
+                        <input type="text" id="username" required placeholder="Ex: NadjiGames" class="w-full bg-blue-50/50 dark:bg-black/40 border border-blue-100 dark:border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-gray-800 dark:text-white text-[15px] font-medium focus:outline-none focus:border-primary dark:focus:border-primary_dark transition-all placeholder:text-gray-400">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">Mot de passe</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] group-focus-within:text-primary dark:group-focus-within:text-primary_dark transition-colors">lock</span>
+                        <input type="password" id="password" required placeholder="••••••••" class="w-full bg-blue-50/50 dark:bg-black/40 border border-blue-100 dark:border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-gray-800 dark:text-white text-[15px] font-medium focus:outline-none focus:border-primary dark:focus:border-primary_dark transition-all placeholder:text-gray-400">
+                    </div>
+                </div>
+                <label class="flex items-center gap-3 cursor-pointer mt-2 pl-1 select-none">
+                    <input type="checkbox" id="remember-me" class="peer sr-only">
+                    <div class="w-5 h-5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-black/40 flex items-center justify-center peer-checked:bg-primary dark:peer-checked:bg-primary_dark peer-checked:border-transparent">
+                        <svg class="w-3.5 h-3.5 text-white dark:text-black opacity-0 transform scale-50 peer-checked:opacity-100 peer-checked:scale-100 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Se souvenir de moi</span>
+                </label>
+                <button type="submit" id="login-btn" class="w-full bg-primary dark:bg-primary_dark dark:text-black text-white font-bold font-space text-[15px] py-4 rounded-xl hover:shadow-[0_8px_24px_rgba(26,86,219,0.3)] dark:hover:shadow-[0_0_20px_rgba(0,238,252,0.3)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-6 active:scale-[0.98]">
+                    Accéder au Cloud <span class="material-symbols-outlined text-[18px]">cloud_sync</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hide w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 z-10 flex flex-col h-full transition-all duration-500 opacity-0 scale-95 pb-12 pt-16 md:pt-20">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6 md:mb-8 glass-card p-5 md:p-6 rounded-[1.5rem]">
+            <div class="w-full lg:w-auto flex justify-between items-start lg:block">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold font-space flex items-center gap-2 text-[#071E52] dark:text-white">
+                        <span id="lounge-name-display" class="truncate max-w-[200px] sm:max-w-none text-primary dark:text-primary_dark" style="text-shadow: 0 0 20px rgba(0, 238, 252, 0.2);"></span>
+                    </h1>
+                    <div class="flex items-center gap-3 mt-1.5 md:mt-2 text-[11px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <span id="live-indicator" class="px-2 py-0.5 rounded flex items-center gap-1.5 font-bold uppercase tracking-widest bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400"><div class="w-1.5 h-1.5 rounded-full bg-gray-500"></div> Hors ligne</span>
+                        <span class="flex items-center gap-1 font-mono"><span class="material-symbols-outlined text-[14px]">sync</span> <span id="sync-time-display">--:--</span></span>
+                    </div>
+                </div>
+                <button onclick="window.logout()" class="lg:hidden text-gray-400 hover:text-error bg-gray-100 dark:bg-white/5 p-2 rounded-xl transition-all"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+            </div>
+            
+            <div class="flex bg-blue-50 dark:bg-black/40 border border-blue-100 dark:border-white/10 rounded-xl p-1 w-full lg:w-auto overflow-x-auto hide-scrollbar shrink-0">
+                <button onclick="window.switchCloudTab('tab-live', this)" class="cloud-nav-btn active px-4 py-2.5 text-xs font-bold rounded-lg bg-white dark:bg-white/10 shadow-sm text-primary dark:text-white whitespace-nowrap transition-colors flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">videogame_asset</span> Live POS</button>
+                <button onclick="window.switchCloudTab('tab-rev', this)" class="cloud-nav-btn px-4 py-2.5 text-xs font-bold rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white whitespace-nowrap transition-colors flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">query_stats</span> Rapports</button>
+                <button onclick="window.switchCloudTab('tab-data', this)" class="cloud-nav-btn px-4 py-2.5 text-xs font-bold rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white whitespace-nowrap transition-colors flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">analytics</span> Analyses</button>
+            </div>
+
+            <button onclick="window.logout()" class="hidden lg:flex text-gray-500 dark:text-gray-400 hover:text-white border border-gray-200 dark:border-white/10 hover:bg-error hover:border-error px-4 py-2.5 rounded-xl text-sm font-bold items-center gap-2 transition-all"><span class="material-symbols-outlined text-[18px]">logout</span> Déconnexion</button>
+        </header>
+
+        <div id="tab-live" class="cloud-tab block">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                <div class="lg:col-span-2 space-y-6 md:space-y-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] flex flex-col justify-center">
+                            <p class="text-[9px] md:text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px] text-primary-dyn">point_of_sale</span> Caisse Globale</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-[#071E52] dark:text-white my-1 truncate"><span id="metric-total">0</span> <span class="text-xs md:text-sm text-gray-400 dark:text-gray-500">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] text-gray-500 dark:text-gray-400 uppercase font-bold truncate">PS: <span id="metric-ps" class="text-primary-dyn">0</span> | Snacks: <span id="metric-snack" class="text-tertiary dark:text-[#ac89ff]">0</span></div>
+                        </div>
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] flex flex-col justify-center">
+                            <p class="text-[9px] md:text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px] text-green-500">trending_up</span> Bénéfice Net</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-[#071E52] dark:text-white my-1 truncate"><span id="metric-net">0</span> <span class="text-xs md:text-sm text-gray-400 dark:text-gray-500">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] text-gray-500 dark:text-gray-400 uppercase font-bold truncate">Bénéfice Snacks</div>
+                        </div>
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] flex flex-col justify-center border-error/20 bg-red-50/50 dark:bg-error/5">
+                            <p class="text-[9px] md:text-[10px] text-error font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px]">receipt_long</span> Crédits</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-error my-1 truncate"><span id="metric-debt">0</span> <span class="text-xs md:text-sm opacity-50">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] text-error/70 uppercase font-bold truncate">Dettes impayées</div>
+                        </div>
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] border-primary/30 dark:border-primary_dark/20 bg-blue-50/50 dark:bg-primary_dark/5 flex flex-col justify-center">
+                            <p class="text-[9px] md:text-[10px] text-primary-dyn font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px]">sensors</span> Valeur en cours</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-primary-dyn my-1 animate-pulse truncate"><span id="metric-live">0</span> <span class="text-xs md:text-sm opacity-50">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] opacity-70 text-primary-dyn uppercase font-bold truncate">Postes actifs</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm md:text-base font-space font-bold mb-3 md:mb-4 px-1 flex items-center gap-2 text-[#071E52] dark:text-white"><span class="material-symbols-outlined text-primary-dyn text-[18px]">grid_view</span> Postes en direct</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4" id="stations-grid"></div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 flex flex-col h-[400px] lg:h-[calc(100vh-140px)]">
+                    <div class="glass-card rounded-[1.5rem] flex flex-col flex-grow overflow-hidden">
+                        <div class="p-4 md:p-5 border-b border-gray-100 dark:border-white/5 shrink-0 bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-sm md:text-base font-space font-bold flex items-center gap-2 text-[#071E52] dark:text-white"><span class="material-symbols-outlined text-secondary dark:text-[#ac89ff] text-[18px]">history</span> Journal d'activité</h3>
+                                <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-widest font-bold">Actions récentes</p>
+                            </div>
+                            <button onclick="window.clearLog()" class="hover:bg-red-100 dark:hover:bg-error/20 text-gray-400 hover:text-error p-2 rounded-lg transition-all flex items-center justify-center" title="Effacer"><span class="material-symbols-outlined text-[18px]">delete_sweep</span></button>
+                        </div>
+                        <div class="flex-grow overflow-y-auto p-4 md:p-5 space-y-4 custom-scrollbar" id="activity-feed"><div class="text-center text-gray-400 dark:text-gray-600 text-xs py-10">En attente de données...</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-rev" class="cloud-tab hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 glass-card rounded-xl p-8">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Tendance des Revenus (Global)</h3>
+                    <div class="relative w-full h-64"><canvas id="trendChart"></canvas></div>
+                </div>
+                <div class="lg:col-span-1 glass-card rounded-xl p-8">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Répartition des revenus</h3>
+                    <div class="relative w-full h-64 flex justify-center"><canvas id="splitChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 mt-10">
+                <h2 class="text-2xl font-bold tracking-tight font-space text-[#071E52] dark:text-white">Historique de Caisse Complet</h2>
+            </div>
+            <div class="glass-card rounded-xl overflow-hidden max-h-[600px] overflow-y-auto custom-scrollbar">
+                <table class="w-full text-left">
+                    <thead class="sticky top-0 bg-gray-50 dark:bg-[#0d0e12] border-b border-gray-200 dark:border-white/10 z-10">
+                        <tr>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Date & Heure</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-primary-dyn text-right">Revenus PlayStation</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-tertiary dark:text-[#ac89ff] text-right">Revenus Snacks</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-error text-right">Dépenses</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary dark:text-[#ff59e3] text-right">Total Net (Clôture)</th>
+                    </tr></thead>
+                    <tbody id="cloud-history-tbody" class="divide-y divide-gray-100 dark:divide-white/5"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-data" class="cloud-tab hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <h2 class="text-2xl font-bold tracking-tight font-space text-[#071E52] dark:text-white">Analyses sur mesure</h2>
+                <div class="flex items-center gap-3 bg-white dark:bg-[#121318] border border-gray-200 dark:border-white/20 rounded-xl px-4 py-2 shadow-sm">
+                    <input type="date" id="date-start" onchange="window.filterCustomRangeData()" class="bg-transparent text-gray-800 dark:text-white text-sm font-bold outline-none cursor-pointer">
+                    <span class="text-gray-500 font-bold uppercase tracking-widest text-[10px]">À</span>
+                    <input type="date" id="date-end" onchange="window.filterCustomRangeData()" class="bg-transparent text-gray-800 dark:text-white text-sm font-bold outline-none cursor-pointer">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="glass-card rounded-xl p-5 border-l-4 border-l-primary-dyn">
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1">PlayStation (Période)</p>
+                    <h3 id="range-ps" class="text-3xl font-space font-bold text-primary-dyn">0 DA</h3>
+                </div>
+                <div class="glass-card rounded-xl p-5 border-l-4 border-l-tertiary dark:border-l-[#ac89ff]">
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1">Snacks (Période)</p>
+                    <h3 id="range-snack" class="text-3xl font-space font-bold text-tertiary dark:text-[#ac89ff]">0 DA</h3>
+                </div>
+                <div class="glass-card rounded-xl p-5 border-l-4 border-l-error">
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1">Dépenses (Période)</p>
+                    <h3 id="range-exp" class="text-3xl font-space font-bold text-error">0 DA</h3>
+                </div>
+                <div class="glass-card rounded-xl p-5 border-l-4 border-l-secondary dark:border-l-[#ff59e3] bg-blue-50/50 dark:bg-white/5">
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold mb-1">Caisse Nette (Période)</p>
+                    <h3 id="range-net" class="text-3xl font-space font-bold text-secondary dark:text-[#ff59e3]">0 DA</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="glass-card rounded-xl p-8 flex items-center gap-6">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-500 flex items-center justify-center text-3xl">🔥</div>
+                    <div><p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-1">Poste le plus rentable</p><p id="cloud-insight-station" class="text-3xl font-bold font-space text-[#071E52] dark:text-white">Calcul...</p></div>
+                </div>
+                <div class="glass-card rounded-xl p-8 flex items-center gap-6">
+                    <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-500/10 text-green-500 flex items-center justify-center text-3xl">📈</div>
+                    <div><p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-1">Meilleur jour de vente</p><p id="cloud-insight-best" class="text-3xl font-bold font-space text-[#071E52] dark:text-white">Calcul...</p></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 glass-card rounded-xl p-8">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Évolution quotidienne (Période sélectionnée)</h3>
+                    <div class="relative w-full h-64"><canvas id="trendChart2"></canvas></div>
+                </div>
+                <div class="lg:col-span-1 glass-card rounded-xl p-8">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Classement des Postes</h3>
+                    <div id="cloud-stations-leaderboard" class="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="receipt-modal" class="fixed inset-0 z-[150] flex items-end sm:items-center justify-center modal-overlay hide opacity-0 transition-opacity duration-300 px-0 sm:px-4">
+        <div class="glass-modal w-full sm:max-w-sm sm:rounded-[2rem] rounded-t-[2rem] p-5 md:p-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 shadow-2xl relative max-h-[85vh] flex flex-col" id="receipt-content">
+            <div class="w-10 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mx-auto mb-5 sm:hidden shrink-0"></div>
+            <button onclick="window.closeModal()" class="absolute top-4 right-4 sm:top-5 sm:right-5 text-gray-400 hover:text-gray-800 dark:hover:text-white bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full p-1.5 transition-all active:scale-90"><span class="material-symbols-outlined text-[20px]">close</span></button>
+            <div class="text-center border-b border-gray-100 dark:border-white/5 pb-4 mb-4 shrink-0"><div class="text-[9px] font-bold tracking-[0.2em] uppercase text-primary-dyn mb-1">Détails en direct</div><h2 id="modal-title" class="text-xl sm:text-2xl font-space font-bold text-[#071E52] dark:text-white">Station 01</h2><p id="modal-time" class="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">--:--</p></div>
+            <div id="modal-items" class="space-y-2 overflow-y-auto pr-2 mb-4 flex-grow custom-scrollbar"></div>
+            <div class="border-t border-gray-100 dark:border-white/5 pt-4 flex justify-between items-center shrink-0"><span class="text-[11px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Total dû</span><span id="modal-total" class="text-xl sm:text-2xl font-space font-bold text-[#071E52] dark:text-white">0 DA</span></div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION THEME SOMBRE / CLAIR (DEFAULT LIGHT)
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('flux_theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon').innerText = isDark ? 'light_mode' : 'dark_mode';
+            
+            document.querySelectorAll('input[type="date"]').forEach(el => {
+                el.style.colorScheme = isDark ? 'dark' : 'light';
+            });
+
+            if(fullHistoryData && fullHistoryData.length > 0) {
+                buildAnalytics(fullHistoryData);
+                filterCustomRangeData();
+            }
+        }
+
+        // INIT THEME (Force Light as Default)
+        const savedTheme = localStorage.getItem('flux_theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.addEventListener("DOMContentLoaded", () => {
+                const ti = document.getElementById('theme-icon');
+                if(ti) ti.innerText = 'light_mode';
+                document.querySelectorAll('input[type="date"]').forEach(el => el.style.colorScheme = 'dark');
+            });
+        } else {
+            document.addEventListener("DOMContentLoaded", () => {
+                const ti = document.getElementById('theme-icon');
+                if(ti) ti.innerText = 'dark_mode';
+            });
+        }
+
+        // CONFIGURATION FIREBASE
+        const FIREBASE_URL = "https://fluxcloud-940b0-default-rtdb.firebaseio.com/";
+        firebase.initializeApp({ databaseURL: FIREBASE_URL });
+        const db = firebase.database();
+
+        let currentUser = null; 
+        let globalStatsData = null; 
+        let unsubscribeListener = null;
+        let trendChartInstance = null; let splitChartInstance = null; let trendChartInstance2 = null;
+        let fullHistoryData = [];
+
+        window.switchCloudTab = function(tabId, btnElement) {
+            document.querySelectorAll('.cloud-tab').forEach(t => { t.classList.remove('block'); t.classList.add('hidden'); });
+            document.querySelectorAll('.cloud-nav-btn').forEach(b => { 
+                b.classList.remove('bg-white', 'dark:bg-white/10', 'shadow-sm', 'text-primary', 'dark:text-white', 'active'); 
+                b.classList.add('text-gray-500', 'dark:text-gray-400'); 
+            });
+            document.getElementById(tabId).classList.remove('hidden'); document.getElementById(tabId).classList.add('block');
+            btnElement.classList.remove('text-gray-500', 'dark:text-gray-400'); 
+            btnElement.classList.add('bg-white', 'dark:bg-white/10', 'shadow-sm', 'text-primary', 'dark:text-white', 'active');
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('flux_remember_user'); 
+            const savedPass = localStorage.getItem('flux_remember_pass');
+            
+            if(savedUser && savedPass) { 
+                document.getElementById('username').value = savedUser; 
+                document.getElementById('password').value = savedPass; 
+                document.getElementById('remember-me').checked = true; 
+                
+                // AUTO LOGIN
+                setTimeout(() => document.getElementById('login-btn').click(), 100);
+            }
+            
+            setInterval(() => { 
+                if(globalStatsData && document.getElementById('tab-live').classList.contains('block')) {
+                    updateDashboardUI(globalStatsData); 
+                }
+            }, 60000); 
+        });
+
+        function showError(msg) {
+            const toast = document.getElementById('toast'); toast.classList.replace('bg-green-500', 'bg-error'); document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-x-[150%]'); setTimeout(() => toast.classList.add('translate-x-[150%]'), 3000);
+        }
+
+        function resetMetricsToZero() {
+            document.getElementById('metric-total').innerText = "0"; document.getElementById('metric-ps').innerText = "0"; document.getElementById('metric-snack').innerText = "0"; document.getElementById('metric-net').innerText = "0"; document.getElementById('metric-debt').innerText = "0"; document.getElementById('metric-live').innerText = "0";
+            document.getElementById('activity-feed').innerHTML = `<div class="text-center text-gray-400 dark:text-gray-600 text-xs py-10">En attente de données...</div>`;
+        }
+
+        function parseSafeDate(dateStr) {
+            let cleanStr = dateStr.split(',')[0].trim(); let timeStr = dateStr.split(',')[1] ? dateStr.split(',')[1].trim() : '';
+            let d = new Date(dateStr); 
+            if (isNaN(d)) {
+                let parts = cleanStr.split('/');
+                if(parts.length === 3) { let timeParts = timeStr ? timeStr.split(':') : [0,0,0]; d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]), parseInt(timeParts[0]), parseInt(timeParts[1]||0)); }
+            }
+            return { dateObj: d, timeStr: timeStr };
+        }
+
+        function formatWithArabicDay(dateStr) {
+            let { dateObj, timeStr } = parseSafeDate(dateStr);
+            if (!isNaN(dateObj)) {
+                let businessD = new Date(dateObj.getTime() - (6 * 60 * 60 * 1000));
+                let arabicDay = businessD.toLocaleDateString('fr-FR', { weekday: 'long' });
+                let businessDateStr = businessD.toLocaleDateString('fr-FR'); 
+                return `<div class="text-sm font-bold text-[#0C1A3A] dark:text-white">${businessDateStr}</div><div class="text-xs text-primary-dyn font-bold mt-1 tracking-wider flex items-center gap-1"><span class="capitalize">${arabicDay}</span>${timeStr ? `<span class="text-gray-300 dark:text-gray-600 ml-1">|</span><span class="text-gray-500 ml-1">${timeStr}</span>` : ''}</div>`;
+            }
+            return `<div class="text-sm font-bold text-[#0C1A3A] dark:text-white">${dateStr}</div>`;
+        }
+
+        function formatDateForInput(dateObj) {
+            let d = new Date(dateObj);
+            let month = '' + (d.getMonth() + 1); let day = '' + d.getDate(); let year = d.getFullYear();
+            if (month.length < 2) month = '0' + month; if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        }
+
+        let ignoredLogs = [];
+        window.clearLog = function() {
+            if(globalStatsData && globalStatsData.recentActivity) {
+                globalStatsData.recentActivity.forEach(log => { ignoredLogs.push(log.timestamp + log.action + log.station); });
+                document.getElementById('activity-feed').innerHTML = `<div class="text-center text-gray-400 dark:text-gray-600 text-xs py-10">En attente de données...</div>`;
+            }
+        };
+
+        function updateActivityFeed(activities) {
+            const feed = document.getElementById('activity-feed');
+            const visibleLogs = (activities || []).filter(log => !ignoredLogs.includes(log.timestamp + log.action + log.station));
+            
+            if (visibleLogs.length === 0) { 
+                const emptyHTML = `<div class="text-center text-gray-400 dark:text-gray-600 text-xs py-10">En attente de données...</div>`;
+                if (feed.innerHTML !== emptyHTML) feed.innerHTML = emptyHTML; return; 
+            }
+            
+            const newFeedHTML = visibleLogs.map((log, index) => {
+                const isLatest = index === 0; let icon = 'info'; let color = 'text-gray-500 bg-gray-100 dark:text-gray-400 dark:bg-white/10';
+                if (log.action.includes('ADD GAME')) { icon = 'sports_esports'; color = 'text-primary bg-blue-50 border-blue-100 dark:text-primary_dark dark:bg-primary_dark/10 dark:border-primary_dark/20'; }
+                else if (log.action.includes('ADD SNACK')) { icon = 'fastfood'; color = 'text-tertiary bg-orange-50 border-orange-100 dark:text-[#ac89ff] dark:bg-[#ac89ff]/10 dark:border-[#ac89ff]/20'; }
+                else if (log.action.includes('PARTIAL') || log.action.includes('CLOSED')) { icon = 'payments'; color = 'text-secondary bg-blue-50 border-blue-100 dark:text-[#ff59e3] dark:bg-[#ff59e3]/10 dark:border-[#ff59e3]/20'; }
+                else if (log.action.includes('WIPE') || log.action.includes('EXPENSE')) { icon = 'delete'; color = 'text-error bg-red-50 border-red-100 dark:bg-error/10 dark:border-error/20'; }
+                return `<div class="flex items-start gap-3 relative group"><div class="w-8 h-8 rounded-full flex items-center justify-center border ${color} shrink-0 relative z-10 ${isLatest ? 'shadow-md shadow-blue-500/20 dark:shadow-[0_0_15px_currentColor]' : ''}"><span class="material-symbols-outlined text-[16px]">${icon}</span></div><div class="pt-1 min-w-0 flex-1"><div class="flex justify-between items-center mb-0.5"><span class="text-[10px] md:text-xs font-bold text-[#0C1A3A] dark:text-white uppercase tracking-wider">${log.action}</span><span class="text-[9px] md:text-[10px] font-mono text-gray-400 dark:text-gray-500 whitespace-nowrap">${log.timestamp.split(', ')[1] || log.timestamp}</span></div><p class="text-[11px] md:text-xs text-gray-500 dark:text-gray-400 truncate" dir="ltr">${log.station}: <span class="text-gray-700 dark:text-gray-300 font-medium">${log.details}</span></p></div></div>`;
+            }).join('');
+
+            if (feed.innerHTML !== newFeedHTML) feed.innerHTML = newFeedHTML;
+        }
+
+        // 🔥 ANALYTICS CORE 🔥
+        function buildAnalytics(historyData) {
+            fullHistoryData = historyData || [];
+            if (fullHistoryData.length === 0) return;
+
+            document.getElementById('cloud-history-tbody').innerHTML = fullHistoryData.slice().reverse().map(row => {
+                let expensesTotal = row.expenses_total || 0; let expHTML = `<span class="text-gray-400 dark:text-gray-500">Aucune</span>`;
+                if(expensesTotal > 0) expHTML = `<div class="text-error font-bold">- ${expensesTotal} DA</div>`;
+                const finalNetVault = (row.playstation_total + row.snack_total) - expensesTotal;
+                return `
+                <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4">${formatWithArabicDay(row.date)}</td>
+                    <td class="px-6 py-4 text-primary-dyn font-bold text-right">${row.playstation_total} DA</td>
+                    <td class="px-6 py-4 text-tertiary dark:text-[#ac89ff] font-bold text-right">${row.snack_total} DA</td>
+                    <td class="px-6 py-4 text-right">${expHTML}</td>
+                    <td class="px-6 py-4 text-secondary dark:text-[#ff59e3] font-bold text-right text-lg">${finalNetVault} DA</td>
+                </tr>`;
+            }).join('');
+
+            let totalPS = 0, totalSnacks = 0, dates = [], psData = [], snackData = [];
+            const chartData = fullHistoryData.slice(0, 30).reverse();
+            chartData.forEach(row => {
+                totalPS += row.playstation_total; totalSnacks += row.snack_total;
+                let { dateObj } = parseSafeDate(row.date);
+                dates.push(!isNaN(dateObj) ? new Date(dateObj.getTime() - (6 * 60 * 60 * 1000)).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : row.date);
+                psData.push(row.playstation_total); snackData.push(row.snack_total);
+            });
+
+            const isDark = document.documentElement.classList.contains('dark');
+            Chart.defaults.color = isDark ? '#94a3b8' : '#475569'; 
+            Chart.defaults.font.family = 'Plus Jakarta Sans';
+            const gridColor = isDark ? '#2a2b30' : '#f1f5f9';
+            const colorPS = isDark ? '#00eefc' : '#1A56DB';
+            const bgPS = isDark ? '#00eefc20' : 'rgba(26,86,219,0.1)';
+            const colorSnack = isDark ? '#ac89ff' : '#F59E0B';
+            const bgSnack = isDark ? '#ac89ff20' : 'rgba(245,158,11,0.1)';
+
+            if(trendChartInstance) trendChartInstance.destroy();
+            trendChartInstance = new Chart(document.getElementById('trendChart'), { 
+                type: 'line', 
+                data: { labels: dates, datasets: [ { label: 'PlayStation (DA)', data: psData, borderColor: colorPS, backgroundColor: bgPS, fill: true, tension: 0.4 }, { label: 'Snacks (DA)', data: snackData, borderColor: colorSnack, backgroundColor: bgSnack, fill: true, tension: 0.4 } ] }, 
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: gridColor } }, x: { grid: { display: false } } } } 
+            });
+            
+            if(splitChartInstance) splitChartInstance.destroy();
+            splitChartInstance = new Chart(document.getElementById('splitChart'), { 
+                type: 'doughnut', 
+                data: { labels: ['PlayStation', 'Snacks'], datasets: [{ data: [totalPS, totalSnacks], backgroundColor: [colorPS, colorSnack], borderWidth: 0 }] }, 
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: Chart.defaults.color } } } } 
+            });
+
+            // Init date pickers
+            if (!document.getElementById('date-start').value) {
+                const sortedData = [...fullHistoryData].sort((a,b) => parseSafeDate(a.date).dateObj - parseSafeDate(b.date).dateObj);
+                const firstDate = parseSafeDate(sortedData[0].date).dateObj;
+                const lastDate = parseSafeDate(sortedData[sortedData.length - 1].date).dateObj;
+                if(!isNaN(firstDate)) document.getElementById('date-start').value = formatDateForInput(firstDate);
+                if(!isNaN(lastDate)) document.getElementById('date-end').value = formatDateForInput(lastDate);
+            }
+            window.filterCustomRangeData();
+        }
+
+        // 🔥 CUSTOM RANGE FILTER LOGIC 🔥
+        window.filterCustomRangeData = function() {
+            const startDateStr = document.getElementById('date-start').value;
+            const endDateStr = document.getElementById('date-end').value;
+            if (!startDateStr || !endDateStr) return;
+
+            const start = new Date(startDateStr); start.setHours(0,0,0,0);
+            const end = new Date(endDateStr); end.setHours(23,59,59,999);
+
+            const filteredData = fullHistoryData.filter(row => {
+                let { dateObj } = parseSafeDate(row.date);
+                if(isNaN(dateObj)) return false;
+                let businessD = new Date(dateObj.getTime() - (6 * 60 * 60 * 1000));
+                return businessD >= start && businessD <= end;
+            });
+            filteredData.sort((a,b) => parseSafeDate(a.date).dateObj - parseSafeDate(b.date).dateObj);
+
+            let totalPS = 0, totalSnacks = 0, totalExpenses = 0;
+            let stationTotals = {}; let dayTotals = {}, dayCounts = {};
+            let dates = [], psData = [], snackData = [];
+
+            filteredData.forEach(row => {
+                totalPS += row.playstation_total;
+                totalSnacks += row.snack_total;
+                totalExpenses += (row.expenses_total || 0);
+
+                let breakdown = row.station_breakdown ? JSON.parse(row.station_breakdown) : {};
+                for(let id in breakdown) { 
+                    if(!stationTotals[id]) stationTotals[id] = { ps: 0, snacks: 0 }; 
+                    stationTotals[id].ps += breakdown[id].ps; 
+                    stationTotals[id].snacks += breakdown[id].snacks; 
+                }
+                
+                let { dateObj } = parseSafeDate(row.date);
+                let businessD = !isNaN(dateObj) ? new Date(dateObj.getTime() - (6 * 60 * 60 * 1000)) : new Date();
+                let dayName = businessD.toLocaleDateString('fr-FR', {weekday: 'long'});
+                let bDateStr = businessD.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                
+                dates.push(bDateStr); psData.push(row.playstation_total); snackData.push(row.snack_total);
+
+                if(dayName !== 'Invalid Date') {
+                    if(!dayTotals[dayName]) { dayTotals[dayName] = 0; dayCounts[dayName] = 0; }
+                    dayTotals[dayName] += ((row.playstation_total + row.snack_total) - (row.expenses_total || 0));
+                    dayCounts[dayName] += 1;
+                }
+            });
+
+            document.getElementById('range-ps').innerText = totalPS + ' DA';
+            document.getElementById('range-snack').innerText = totalSnacks + ' DA';
+            document.getElementById('range-exp').innerText = '-' + totalExpenses + ' DA';
+            document.getElementById('range-net').innerText = ((totalPS + totalSnacks) - totalExpenses) + ' DA';
+
+            const sortedStations = Object.keys(stationTotals).sort((a,b) => (stationTotals[b].ps + stationTotals[b].snacks) - (stationTotals[a].ps + stationTotals[a].snacks));
+            document.getElementById('cloud-stations-leaderboard').innerHTML = sortedStations.map(id => {
+                const total = stationTotals[id].ps + stationTotals[id].snacks;
+                return `<div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
+                            <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-primary_dark/10 text-primary-dyn flex items-center justify-center font-bold font-space text-lg">0${id}</div><span class="font-bold text-[#071E52] dark:text-gray-300">Station 0${id}</span></div>
+                            <div class="text-right"><div class="font-bold text-[#071E52] dark:text-white text-xl">${total} DA</div><div class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">PS: ${stationTotals[id].ps} | Snacks: ${stationTotals[id].snacks}</div></div>
+                        </div>`;
+            }).join('') || '<p class="text-gray-500">Aucune donnée sur cette période.</p>';
+
+            if(Object.keys(stationTotals).length > 0) {
+                let bestStation = Object.keys(stationTotals).reduce((a, b) => (stationTotals[a].ps + stationTotals[a].snacks) > (stationTotals[b].ps + stationTotals[b].snacks) ? a : b);
+                document.getElementById('cloud-insight-station').innerText = `Station 0${bestStation} (${stationTotals[bestStation].ps + stationTotals[bestStation].snacks} DA)`;
+            } else { document.getElementById('cloud-insight-station').innerText = "N/A"; }
+            
+            let bestDay = "-", maxAvg = -1;
+            for(let day in dayTotals) { let avg = dayTotals[day] / dayCounts[day]; if(avg > maxAvg) { maxAvg = avg; bestDay = day; } }
+            document.getElementById('cloud-insight-best').innerText = bestDay.charAt(0).toUpperCase() + bestDay.slice(1);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? '#2a2b30' : '#f1f5f9';
+            const colorPS = isDark ? '#00eefc' : '#1A56DB';
+            const colorSnack = isDark ? '#ac89ff' : '#F59E0B';
+
+            if(trendChartInstance2) trendChartInstance2.destroy();
+            trendChartInstance2 = new Chart(document.getElementById('trendChart2'), { 
+                type: 'bar', 
+                data: { labels: dates, datasets: [ { label: 'PlayStation (DA)', data: psData, backgroundColor: colorPS, borderRadius: 4 }, { label: 'Snacks (DA)', data: snackData, backgroundColor: colorSnack, borderRadius: 4 } ] }, 
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, grid: { color: gridColor } } } } 
+            });
+        };
+
+        function updateDashboardUI(stats) {
+            if (!stats) { resetMetricsToZero(); return; }
+            const profit = stats.profit || { playstation: 0, snacks: 0, snacksNet: 0, expenses: 0 };
+            
+            document.getElementById('metric-total').innerText = profit.playstation + profit.snacks; 
+            document.getElementById('metric-ps').innerText = profit.playstation; 
+            document.getElementById('metric-snack').innerText = profit.snacks; 
+            document.getElementById('metric-net').innerText = profit.snacksNet || 0; 
+            document.getElementById('metric-debt').innerText = stats.totalDebt || 0;
+
+            const stationsList = stats.stations || [];
+            let totalLive = 0; const grid = document.getElementById('stations-grid');
+            const sortedStations = stationsList.sort((a, b) => (b.isActive === a.isActive) ? 0 : b.isActive ? 1 : -1);
+
+            sortedStations.forEach((s, index) => {
+                const total = (s.psTotal || 0) + (s.snackTotal || 0);
+                if (s.isActive) totalLive += total;
+                let timeStr = "--:--";
+                if (s.isActive && s.startTime) { 
+                    const elapsed = Date.now() - s.startTime; 
+                    const h = Math.floor(elapsed / 3600000); const m = Math.floor((elapsed % 3600000) / 60000).toString().padStart(2, '0'); 
+                    timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`; 
+                }
+                
+                const border = s.isActive ? (s.isWarning ? 'border-error/50 bg-red-50 dark:bg-error/10 hover:border-error' : 'border-blue-200 dark:border-primary_dark/30 bg-white dark:bg-primary_dark/10 hover:border-primary dark:hover:border-primary_dark shadow-sm') : 'border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-[#18191e]/50 opacity-70 dark:opacity-50 cursor-default';
+                const textCol = s.isActive ? (s.isWarning ? 'text-error animate-pulse' : 'text-primary-dyn') : 'text-gray-400 dark:text-gray-500';
+                const icon = s.isActive ? 'tv' : 'tv_off';
+                const cursor = s.isActive ? 'cursor-pointer active:scale-95 hover:-translate-y-1 hover:shadow-lg' : 'cursor-default';
+
+                let card = document.getElementById(`cloud-station-${s.id}`);
+                if (!card) { card = document.createElement('div'); card.id = `cloud-station-${s.id}`; card.onclick = () => { if (card.dataset.active === "true") window.openModal(s.id); }; grid.appendChild(card); }
+                card.className = `station-card p-4 rounded-[1.25rem] border ${border} transition-all duration-300 ${cursor} dark:glass-card`;
+                card.dataset.active = s.isActive;
+
+                const newInner = `<div class="flex justify-between items-start mb-3 md:mb-4 pointer-events-none"><div><span class="text-[9px] md:text-[10px] font-bold tracking-[0.2em] uppercase text-gray-500 dark:text-gray-400">St 0${s.id}</span><h3 class="font-space font-bold text-base md:text-lg text-[#071E52] dark:text-white mt-0.5 leading-none">SONY ${s.type}</h3></div><span class="material-symbols-outlined ${textCol} text-[20px] md:text-[24px] pointer-events-none">${icon}</span></div><div class="flex justify-between items-end pointer-events-none"><span class="font-mono font-bold text-xs md:text-sm ${textCol}">${s.isActive ? timeStr : 'Disponible'}</span><span class="font-bold text-sm md:text-base ${s.isActive ? 'text-[#071E52] dark:text-white' : 'text-gray-400 dark:text-gray-600'} leading-none">${total} <span class="text-[9px] md:text-[10px] ${s.isActive ? 'text-gray-500' : 'text-gray-400 dark:text-gray-700'}">DA</span></span></div>`;
+                if (card.innerHTML !== newInner) card.innerHTML = newInner;
+                if (grid.children[index] !== card) grid.insertBefore(card, grid.children[index]);
+            });
+
+            document.getElementById('metric-live').innerText = totalLive;
+            updateActivityFeed(stats.recentActivity || []);
+            if(stats.history) buildAnalytics(stats.history);
+        }
+
+        window.openModal = function(id) {
+            if (!globalStatsData) return;
+            const station = globalStatsData.stations?.find(s => s.id === id); if (!station) return;
+            document.getElementById('modal-title').innerText = `Station 0${station.id} (${station.type})`; document.getElementById('modal-total').innerText = `${(station.psTotal || 0) + (station.snackTotal || 0)} DA`;
+            
+            const itemsContainer = document.getElementById('modal-items');
+            if (station.history && station.history.length > 0) {
+                itemsContainer.innerHTML = station.history.map(item => {
+                    const isGame = item.type === 'game'; const isPayment = item.type === 'payment';
+                    const icon = isGame ? 'sports_esports' : (isPayment ? 'payments' : 'fastfood');
+                    const color = isGame ? 'text-primary bg-blue-50 dark:text-primary_dark dark:bg-primary_dark/10' : (isPayment ? 'text-secondary bg-blue-50 dark:text-[#ff59e3] dark:bg-[#ff59e3]/10' : 'text-tertiary bg-orange-50 dark:text-[#ac89ff] dark:bg-[#ac89ff]/10');
+                    const title = isGame ? item.gameType : (isPayment ? 'Paiement partiel' : `${item.qty}x ${item.name}`);
+                    return `<div class="flex justify-between items-center p-2.5 md:p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5"><div class="flex items-center gap-2.5 md:gap-3 overflow-hidden"><div class="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center shrink-0 ${color}"><span class="material-symbols-outlined text-[14px] md:text-[16px]">${icon}</span></div><span class="text-xs md:text-sm font-bold text-gray-800 dark:text-white truncate">${title}</span></div><span class="text-[11px] md:text-xs font-mono ${isPayment ? 'text-error' : 'text-gray-600 dark:text-gray-300'} whitespace-nowrap pl-2">${isPayment ? '-' : '+'}${item.amount} DA</span></div>`;
+                }).join('');
+            } else { itemsContainer.innerHTML = `<p class="text-center text-gray-500 text-xs py-6">Aucune activité</p>`; }
+
+            const modal = document.getElementById('receipt-modal'); const content = document.getElementById('receipt-content');
+            modal.classList.remove('hide'); void modal.offsetWidth; modal.classList.remove('opacity-0'); content.classList.remove('translate-y-full', 'scale-95');
+        };
+
+        window.closeModal = function() {
+            const modal = document.getElementById('receipt-modal'); const content = document.getElementById('receipt-content');
+            modal.classList.add('opacity-0'); if(window.innerWidth < 640) content.classList.add('translate-y-full'); else content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hide'), 300);
+        };
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            const btn = document.getElementById('login-btn'); 
+            const usernameInput = document.getElementById('username').value.trim(); 
+            const passwordInput = document.getElementById('password').value.trim(); 
+            const rememberMe = document.getElementById('remember-me').checked;
+            
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Authentification...`; 
+            btn.classList.add('opacity-80', 'pointer-events-none');
+            
+            try {
+                const snapshot = await db.ref(`licenses/${usernameInput}`).once('value');
+                if (!snapshot.exists()) throw new Error("Compte introuvable.");
+                const userData = snapshot.val();
+                if (userData.password !== passwordInput) throw new Error("Mot de passe invalide."); 
+                
+                if(rememberMe) { localStorage.setItem('flux_remember_user', usernameInput); localStorage.setItem('flux_remember_pass', passwordInput); } 
+                else { localStorage.removeItem('flux_remember_user'); localStorage.removeItem('flux_remember_pass'); }
+                
+                currentUser = usernameInput; 
+                document.getElementById('lounge-name-display').innerText = currentUser;
+                document.getElementById('login-screen').classList.add('opacity-0', 'scale-95', 'pointer-events-none', 'absolute');
+                
+                setTimeout(() => { 
+                    document.getElementById('login-screen').classList.add('hide'); 
+                    const dash = document.getElementById('dashboard-screen'); 
+                    dash.classList.remove('hide'); void dash.offsetWidth; 
+                    dash.classList.remove('opacity-0', 'scale-95'); 
+                }, 300);
+
+                unsubscribeListener = db.ref(`licenses/${currentUser}/liveStats`).on('value', (snapshot) => {
+                    const stats = snapshot.val();
+                    if(stats && Object.keys(stats).length > 1) { 
+                        globalStatsData = stats; updateDashboardUI(stats);
+                        document.getElementById('sync-time-display').innerText = new Date(stats.lastUpdate).toLocaleTimeString('fr-FR');
+                        const timeDiff = Math.abs(Date.now() - stats.lastUpdate);
+                        if (timeDiff > 60000) { 
+                            document.getElementById('live-indicator').className = "px-2 py-0.5 rounded flex items-center gap-1.5 font-bold uppercase tracking-widest bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400"; 
+                            document.getElementById('live-indicator').innerHTML = `<div class="w-1.5 h-1.5 rounded-full bg-gray-500"></div> Hors ligne`; 
+                        } else { 
+                            document.getElementById('live-indicator').className = "px-2 py-0.5 rounded flex items-center gap-1.5 font-bold uppercase tracking-widest bg-green-100 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-400 shadow-sm dark:shadow-[0_0_10px_rgba(34,197,94,0.1)]"; 
+                            document.getElementById('live-indicator').innerHTML = `<div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Live`; 
+                        }
+                    } else if (!stats) { resetMetricsToZero(); }
+                });
+            } catch (err) { 
+                showError(err.message); 
+                btn.innerHTML = `Accéder au Cloud <span class="material-symbols-outlined text-[18px]">cloud_sync</span>`; 
+                btn.classList.remove('opacity-80', 'pointer-events-none'); 
+            }
+        });
+
+        window.logout = function() {
+            if (unsubscribeListener) db.ref(`licenses/${currentUser}/liveStats`).off('value', unsubscribeListener); 
+            currentUser = null; globalStatsData = null; resetMetricsToZero();
+            const dash = document.getElementById('dashboard-screen'); dash.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                dash.classList.add('hide'); const login = document.getElementById('login-screen'); login.classList.remove('hide', 'absolute'); void login.offsetWidth; login.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                const btn = document.getElementById('login-btn'); btn.innerHTML = `Accéder au Cloud <span class="material-symbols-outlined text-[18px]">cloud_sync</span>`; btn.classList.remove('opacity-80', 'pointer-events-none');
+                if(!document.getElementById('remember-me').checked) document.getElementById('password').value = '';
+            }, 300);
+        };
+    </script>
+</body>
+</html>

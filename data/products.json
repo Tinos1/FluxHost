@@ -1,0 +1,167 @@
+[
+  {
+    "id": "fluxterminal",
+    "name": {
+      "fr": "FluxTerminal"
+    },
+    "tagline": {
+      "fr": "POS Gaming Hall Manager"
+    },
+    "description": {
+      "fr": "Système de gestion complet et puissant dédié aux salles de jeux (Gaming Lounge). Contrôle du réseau local, gestion du temps des sessions PS4/PS5, suivi financier en temps réel et interface gérant intuitive."
+    },
+    "price": "35000",
+    "currency": "DA",
+    "priceNote": {
+      "fr": "Licence à vie",
+      "ar": "رخصة مدى الحياة",
+      "en": "Lifetime License"
+    },
+    "features": {
+      "fr": [
+        "Accès à distance depuis la maison",
+        "Surveillance des employés en direct",
+        "Suivi des postes en temps réel",
+        "Contrôle réseau PS4/PS5",
+        "Facturation automatique"
+      ],
+      "ar": [
+        "دخول عن بعد من المنزل",
+        "مراقبة العمال مباشرة",
+        "تتبع الأجهزة في الوقت الفعلي",
+        "تحكم في شبكة PS4/PS5",
+        "فوترة تلقائية"
+      ],
+      "en": [
+        "Remote access from home",
+        "Live employee monitoring",
+        "Real-time station tracking",
+        "PS4/PS5 Network Control",
+        "Automated Billing"
+      ]
+    },
+    "rating": 4.8,
+    "reviews": 124,
+    "image": "/uploads/product-1779391228757.png",
+    "badge": {
+      "fr": "Best Seller",
+      "ar": "الأكثر مبيعاً",
+      "en": "Best Seller"
+    },
+    "badgeColor": "#1A56DB",
+    "category": "Logiciel Gaming",
+    "active": true
+  },
+  {
+    "id": "multiflux",
+    "name": {
+      "fr": "MultiFlux",
+      "ar": "مالتي فلوكس",
+      "en": "MultiFlux"
+    },
+    "tagline": {
+      "fr": "Point de Vente Multi-Secteurs",
+      "ar": "نظام نقاط بيع متعدد القطاعات",
+      "en": "Multi-Sector POS"
+    },
+    "description": {
+      "fr": "Le système de Point de Vente (POS) ultime pour les commerces. Parfait pour les supermarchés, supérettes, magasins de cosmétiques et prêt-à-porter. Inclut la gestion de stock avancée, l'intégration des lecteurs code-barres et des rapports détaillés.",
+      "ar": "نظام نقاط بيع مثالي للمحلات، السوبر ماركت، ومحلات التجميل. يتضمن إدارة متقدمة للمخزون، دعم قارئ الباركود، وتقارير مبيعات مفصلة.",
+      "en": "The ultimate POS system for retail. Perfect for supermarkets and cosmetic shops. Includes advanced stock management, barcode scanner integration, and detailed reporting."
+    },
+    "price": "45000",
+    "currency": "DA",
+    "priceNote": {
+      "fr": "Licence à vie",
+      "ar": "رخصة مدى الحياة",
+      "en": "Lifetime License"
+    },
+    "features": {
+      "fr": [
+        "Gestion de stock avancée",
+        "Support Code-barres & Tiroir-caisse",
+        "Rapports de ventes détaillés",
+        "Interface Multi-caisses"
+      ],
+      "ar": [
+        "إدارة متقدمة للمخزون",
+        "دعم الباركود ودرج النقود",
+        "تقارير مبيعات مفصلة",
+        "واجهة متعددة الصناديق"
+      ],
+      "en": [
+        "Advanced Stock Management",
+        "Barcode & Cash Drawer Support",
+        "Detailed Sales Reports",
+        "Multi-register Interface"
+      ]
+    },
+    "rating": 4.8,
+    "reviews": 89,
+    "image": null,
+    "badge": {
+      "fr": "Nouveau",
+      "ar": "جديد",
+      "en": "New"
+    },
+    "badgeColor": "#22C55E",
+    "category": "Logiciel Retail",
+    "active": true
+  },
+  {
+    "id": "fluxweb",
+    "name": {
+      "fr": "FluxWeb E-com",
+      "ar": "فلوكس ويب",
+      "en": "FluxWeb E-com"
+    },
+    "tagline": {
+      "fr": "Boutique en ligne prête à l'emploi",
+      "ar": "متجر إلكتروني جاهز",
+      "en": "Ready-to-use E-commerce"
+    },
+    "description": {
+      "fr": "Lancez votre commerce sur internet rapidement. Un site e-commerce performant, optimisé pour les mobiles et intégré avec les méthodes de paiement et de livraison algériennes.",
+      "ar": "أطلق متجرك الإلكتروني بسرعة. موقع سريع، متوافق مع الجوال، ومدمج مع طرق الدفع والتوصيل في الجزائر (مثل ياليدين).",
+      "en": "Launch your online store quickly. Mobile-optimized e-commerce site integrated with Algerian delivery and payment methods."
+    },
+    "price": "70000",
+    "currency": "DA",
+    "priceNote": {
+      "fr": "Hébergement 1an inclus",
+      "ar": "استضافة سنة مجانية",
+      "en": "1yr Hosting Included"
+    },
+    "features": {
+      "fr": [
+        "Design Responsive (Mobile First)",
+        "Gestion Panier & Commandes",
+        "Intégration Livraison (Yalidine...)",
+        "Panneau d'administration complet"
+      ],
+      "ar": [
+        "تصميم متوافق مع الجوال",
+        "إدارة السلة والطلبات",
+        "دمج شركات التوصيل (ياليدين...)",
+        "لوحة تحكم كاملة"
+      ],
+      "en": [
+        "Responsive Design (Mobile First)",
+        "Cart & Order Management",
+        "Delivery Integration (Yalidine...)",
+        "Full Admin Panel"
+      ]
+    },
+    "rating": 4.8,
+    "reviews": 56,
+    "image": null,
+    "badge": {
+      "fr": "Premium",
+      "ar": "مميز",
+      "en": "Premium"
+    },
+    "badgeColor": "#8B5CF6",
+    "category": "Site Web",
+    "active": true
+  }
+]

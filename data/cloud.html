@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Flux Cloud | Espace Client</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231A56DB'/%3E%3Cpath d='M33 75V25h34v12H47v10h16v12H47v16z' fill='%23ffffff'/%3E%3C/svg%3E">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { background: "#EFF6FF", surface: "rgba(255,255,255,0.75)", primary: "#1A56DB", error: "#EF4444", secondary: "#3B82F6", tertiary: "#F59E0B" }, fontFamily: { 'space': ['Poppins', 'sans-serif'], 'manrope': ['Plus Jakarta Sans', 'sans-serif'] } } } }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #EFF6FF; color: #0C1A3A; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        
+        /* THEME FLUX SOFTWARE */
+        .bg-mesh{position:fixed;inset:0;z-index:-1;background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 40%,#EFF6FF 100%)}
+        .bg-mesh::before{content:'';position:absolute;width:900px;height:900px;top:-300px;right:-200px;background:radial-gradient(circle,rgba(59,130,246,.18) 0%,transparent 70%);animation:floatOrb 12s ease-in-out infinite alternate}
+        .bg-mesh::after{content:'';position:absolute;width:700px;height:700px;bottom:-200px;left:-100px;background:radial-gradient(circle,rgba(26,86,219,.12) 0%,transparent 70%);animation:floatOrb 15s ease-in-out infinite alternate-reverse}
+        @keyframes floatOrb{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,30px) scale(1.08)}}
+
+        .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.95); box-shadow: 0 8px 32px rgba(26,86,219,0.08); }
+        .glass-modal { background: rgba(255,255,255,0.98); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 24px 64px rgba(7,30,82,0.18); }
+        .hide { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .modal-overlay { background: rgba(7,30,82,0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+        /* WIDGET iOS */
+        .ios-widget { background: linear-gradient(135deg, #ffffff, #f8fafc); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; padding: 16px; display: flex; align-items: center; gap: 16px; }
+        .ios-icon { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #1A56DB, #60A5FA); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(26,86,219,0.3); }
+        .ios-progress-bg { width: 100%; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .ios-progress-fill { height: 100%; background: linear-gradient(90deg, #1A56DB, #3B82F6); border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center relative selection:bg-primary selection:text-white">
+    <div class="bg-mesh"></div>
+
+    <div class="fixed top-4 left-4 md:top-6 md:left-6 z-[200]">
+        <a href="/" class="flex items-center gap-1.5 bg-white/80 backdrop-blur-md border border-white px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 hover:text-primary hover:border-primary/50 transition-all shadow-lg">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span> Retour au site
+        </a>
+    </div>
+
+    <div id="toast" class="fixed top-4 right-4 md:right-6 transform translate-x-[150%] transition-transform duration-300 bg-error text-white px-5 py-3.5 rounded-xl font-bold flex items-center gap-3 z-[100] shadow-[0_8px_24px_rgba(239,68,68,0.3)] text-sm w-[calc(100%-2rem)] md:w-auto">
+        <span class="material-symbols-outlined">error</span><span id="toast-msg">Erreur!</span>
+    </div>
+
+    <div id="login-screen" class="w-full max-w-[420px] p-6 pt-24 md:pt-32 z-10 transition-all duration-500 mx-auto">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-[1.5rem] bg-white border border-white shadow-xl mb-6">
+                <svg viewBox="0 0 60 60" fill="none" class="w-12 h-12"><path d="M20 22C20 22 28 18 36 24C44 30 44 38 36 42" stroke="#1A56DB" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M40 20C40 20 32 18 24 26C16 34 18 42 26 44" stroke="#60A5FA" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M37 37L44 32L44 44Z" fill="#1A56DB"/></svg>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold font-space tracking-tight mb-2 text-[#071E52]">Flux Cloud</h1>
+            <p class="text-[#4B6CB7] text-sm font-medium">Connexion à votre espace base de données</p>
+        </div>
+        
+        <div class="glass-card rounded-[2rem] p-6 md:p-8 shadow-2xl">
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">ID Client (FluxTerminal)</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] group-focus-within:text-primary transition-colors">storefront</span>
+                        <input type="text" id="username" required placeholder="Ex: NadjiGames" class="w-full bg-blue-50/50 border border-blue-100 rounded-xl py-3.5 pl-12 pr-4 text-gray-800 text-[15px] font-medium focus:outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-gray-400">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Mot de passe</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] group-focus-within:text-primary transition-colors">lock</span>
+                        <input type="password" id="password" required placeholder="••••••••" class="w-full bg-blue-50/50 border border-blue-100 rounded-xl py-3.5 pl-12 pr-4 text-gray-800 text-[15px] font-medium focus:outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-gray-400">
+                    </div>
+                </div>
+                <label class="checkbox-wrapper flex items-center gap-3 cursor-pointer mt-2 pl-1 select-none">
+                    <div class="relative flex items-center">
+                        <input type="checkbox" id="remember-me" class="peer sr-only">
+                        <div class="w-5 h-5 border border-gray-300 rounded bg-white transition-colors flex items-center justify-center peer-focus:ring-2 peer-focus:ring-primary/50 peer-checked:bg-primary peer-checked:border-primary">
+                            <svg class="w-3.5 h-3.5 text-white opacity-0 transform scale-50 transition-all peer-checked:opacity-100 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-600 select-none">Se souvenir de moi</span>
+                </label>
+                <button type="submit" id="login-btn" class="w-full bg-gradient-to-r from-primary to-secondary text-white font-bold font-space text-[15px] py-4 rounded-xl hover:shadow-[0_8px_24px_rgba(26,86,219,0.3)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 mt-6 active:scale-[0.98]">
+                    Accéder au Cloud <span class="material-symbols-outlined text-[18px]">cloud_sync</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hide w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 z-10 flex flex-col h-full transition-all duration-500 opacity-0 scale-95 pb-12 pt-16 md:pt-20">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6 md:mb-8 glass-card p-5 md:p-6 rounded-[1.5rem]">
+            <div class="w-full lg:w-auto flex justify-between items-start lg:block">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold font-space flex items-center gap-2 text-[#071E52]">
+                        <span id="lounge-name-display" class="truncate max-w-[200px] sm:max-w-none text-primary"></span>
+                    </h1>
+                    <div class="flex items-center gap-3 mt-1.5 md:mt-2 text-[11px] md:text-xs text-gray-500 font-medium">
+                        <span id="live-indicator" class="px-2 py-0.5 rounded flex items-center gap-1.5 font-bold uppercase tracking-widest bg-gray-200 border border-gray-300 text-gray-600"><div class="w-1.5 h-1.5 rounded-full bg-gray-500"></div> Hors ligne</span>
+                        <span class="flex items-center gap-1 font-mono"><span class="material-symbols-outlined text-[14px]">sync</span> <span id="sync-time-display">--:--</span></span>
+                    </div>
+                </div>
+                <button onclick="window.logout()" class="lg:hidden text-gray-400 hover:text-error bg-gray-100 p-2 rounded-xl transition-all"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+            </div>
+            
+            <div class="ios-widget w-full lg:w-80 shrink-0">
+                <div class="ios-icon">
+                    <span class="material-symbols-outlined text-[28px]">workspace_premium</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-sm font-bold text-[#071E52]">Licence Lifetime</h4>
+                        <span class="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Actif</span>
+                    </div>
+                    <div class="ios-progress-bg">
+                        <div class="ios-progress-fill" style="width: 100%"></div>
+                    </div>
+                    <p class="text-xs text-[#4B6CB7] mt-1 font-medium">Mises à jour illimitées incluses</p>
+                </div>
+            </div>
+
+            <div class="flex bg-blue-50 border border-blue-100 rounded-xl p-1 w-full lg:w-auto overflow-x-auto hide-scrollbar shrink-0">
+                <button onclick="window.switchCloudTab('tab-live', this)" class="cloud-nav-btn active px-4 py-2.5 text-xs font-bold rounded-lg bg-white shadow-sm text-primary whitespace-nowrap transition-colors flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">videogame_asset</span> Live POS</button>
+                <button onclick="window.switchCloudTab('tab-rev', this)" class="cloud-nav-btn px-4 py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-800 whitespace-nowrap transition-colors flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">query_stats</span> Rapports</button>
+                <button onclick="window.switchCloudTab('tab-data', this)" class="cloud-nav-btn px-4 py-2.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-800 whitespace-nowrap transition-colors flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">analytics</span> Historique</button>
+            </div>
+
+            <button onclick="window.logout()" class="hidden lg:flex text-gray-500 hover:text-white border border-gray-200 hover:bg-error hover:border-error px-4 py-2.5 rounded-xl text-sm font-bold items-center gap-2 transition-all"><span class="material-symbols-outlined text-[18px]">logout</span> Déconnexion</button>
+        </header>
+
+        <div id="tab-live" class="cloud-tab block">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                <div class="lg:col-span-2 space-y-6 md:space-y-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] flex flex-col justify-center">
+                            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px] text-primary">point_of_sale</span> Caisse Globale</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-[#071E52] my-1 truncate"><span id="metric-total">0</span> <span class="text-xs md:text-sm text-gray-400">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] text-gray-500 uppercase font-bold truncate">PS: <span id="metric-ps" class="text-primary">0</span> | Buvette: <span id="metric-snack" class="text-tertiary">0</span></div>
+                        </div>
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] flex flex-col justify-center">
+                            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px] text-green-500">trending_up</span> Bénéfice Net</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-[#071E52] my-1 truncate"><span id="metric-net">0</span> <span class="text-xs md:text-sm text-gray-400">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] text-gray-500 uppercase font-bold truncate">Bénéfice Buvette</div>
+                        </div>
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] flex flex-col justify-center border-error/20 bg-red-50/50">
+                            <p class="text-[9px] md:text-[10px] text-error font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px]">receipt_long</span> Crédits</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-error my-1 truncate"><span id="metric-debt">0</span> <span class="text-xs md:text-sm opacity-50">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] text-error/70 uppercase font-bold truncate">Dettes impayées</div>
+                        </div>
+                        <div class="glass-card p-4 md:p-5 rounded-[1.25rem] border-primary/30 bg-blue-50/50 flex flex-col justify-center">
+                            <p class="text-[9px] md:text-[10px] text-primary font-bold uppercase tracking-widest mb-1 flex items-center gap-1 truncate"><span class="material-symbols-outlined text-[14px]">sensors</span> Valeur en cours</p>
+                            <h2 class="text-2xl md:text-3xl font-space font-bold text-primary my-1 animate-pulse truncate"><span id="metric-live">0</span> <span class="text-xs md:text-sm opacity-50">DA</span></h2>
+                            <div class="text-[8px] md:text-[9px] text-primary/70 uppercase font-bold truncate">Postes actifs</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm md:text-base font-space font-bold mb-3 md:mb-4 px-1 flex items-center gap-2 text-[#071E52]"><span class="material-symbols-outlined text-primary text-[18px]">grid_view</span> Postes en direct</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4" id="stations-grid"></div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 flex flex-col h-[400px] lg:h-[calc(100vh-140px)]">
+                    <div class="glass-card rounded-[1.5rem] flex flex-col flex-grow overflow-hidden">
+                        <div class="p-4 md:p-5 border-b border-gray-100 shrink-0 bg-gray-50/50 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-sm md:text-base font-space font-bold flex items-center gap-2 text-[#071E52]"><span class="material-symbols-outlined text-secondary text-[18px]">history</span> Journal d'activité</h3>
+                                <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest font-bold">Actions récentes</p>
+                            </div>
+                            <button onclick="window.clearLog()" class="hover:bg-red-100 text-gray-400 hover:text-error p-2 rounded-lg transition-all flex items-center justify-center" title="Effacer"><span class="material-symbols-outlined text-[18px]">delete_sweep</span></button>
+                        </div>
+                        <div class="flex-grow overflow-y-auto p-4 md:p-5 space-y-4 custom-scrollbar" id="activity-feed"><div class="text-center text-gray-400 text-xs py-10">En attente de données...</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-rev" class="cloud-tab hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 glass-card rounded-xl p-8">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 mb-4">Tendance des Revenus</h3>
+                    <div class="relative w-full h-64"><canvas id="trendChart"></canvas></div>
+                </div>
+                <div class="lg:col-span-1 glass-card rounded-xl p-8">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 mb-4">Répartition des revenus</h3>
+                    <div class="relative w-full h-64 flex justify-center"><canvas id="splitChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-data" class="cloud-tab hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <h2 class="text-2xl font-bold tracking-tight font-space text-[#071E52]">Historique de Caisse</h2>
+            </div>
+            <div class="glass-card rounded-xl overflow-hidden max-h-[800px] overflow-y-auto custom-scrollbar">
+                <table class="w-full text-left">
+                    <thead class="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
+                        <tr>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Date & Heure</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-primary text-right">Revenus PlayStation</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-tertiary text-right">Revenus Buvette</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-error text-right">Dépenses</th>
+                        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-secondary text-right">Total Net (Clôture)</th>
+                    </tr></thead>
+                    <tbody id="cloud-history-tbody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="receipt-modal" class="fixed inset-0 z-[150] flex items-end sm:items-center justify-center modal-overlay hide opacity-0 transition-opacity duration-300 px-0 sm:px-4">
+        <div class="glass-modal w-full sm:max-w-sm sm:rounded-[2rem] rounded-t-[2rem] p-5 md:p-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 shadow-2xl relative max-h-[85vh] flex flex-col" id="receipt-content">
+            <div class="w-10 h-1.5 bg-gray-200 rounded-full mx-auto mb-5 sm:hidden shrink-0"></div>
+            <button onclick="window.closeModal()" class="absolute top-4 right-4 sm:top-5 sm:right-5 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 transition-all active:scale-90"><span class="material-symbols-outlined text-[20px]">close</span></button>
+            <div class="text-center border-b border-gray-100 pb-4 mb-4 shrink-0"><div class="text-[9px] font-bold tracking-[0.2em] uppercase text-primary mb-1">Détails en direct</div><h2 id="modal-title" class="text-xl sm:text-2xl font-space font-bold text-[#071E52]">Station 01</h2><p id="modal-time" class="text-xs text-gray-500 font-mono mt-0.5">--:--</p></div>
+            <div id="modal-items" class="space-y-2 overflow-y-auto pr-2 mb-4 flex-grow custom-scrollbar"></div>
+            <div class="border-t border-gray-100 pt-4 flex justify-between items-center shrink-0"><span class="text-[11px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">Total dû</span><span id="modal-total" class="text-xl sm:text-2xl font-space font-bold text-[#071E52]">0 DA</span></div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION FIREBASE
+        const FIREBASE_URL = "https://fluxcloud-940b0-default-rtdb.firebaseio.com/";
+        firebase.initializeApp({ databaseURL: FIREBASE_URL });
+        const db = firebase.database();
+
+        let currentUser = null; 
+        let globalStatsData = null; 
+        let unsubscribeListener = null;
+        let trendChartInstance = null; let splitChartInstance = null;
+        let fullHistoryData = [];
+
+        window.switchCloudTab = function(tabId, btnElement) {
+            document.querySelectorAll('.cloud-tab').forEach(t => { t.classList.remove('block'); t.classList.add('hidden'); });
+            document.querySelectorAll('.cloud-nav-btn').forEach(b => { b.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'active'); b.classList.add('text-gray-500'); });
+            document.getElementById(tabId).classList.remove('hidden'); document.getElementById(tabId).classList.add('block');
+            btnElement.classList.remove('text-gray-500'); btnElement.classList.add('bg-white', 'shadow-sm', 'text-primary', 'active');
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('flux_remember_user'); const savedPass = localStorage.getItem('flux_remember_pass');
+            if(savedUser && savedPass) { document.getElementById('username').value = savedUser; document.getElementById('password').value = savedPass; document.getElementById('remember-me').checked = true; }
+            setInterval(() => { if(globalStatsData && document.getElementById('tab-live').classList.contains('block')) updateDashboardUI(globalStatsData); }, 60000); 
+        });
+
+        function showError(msg) {
+            const toast = document.getElementById('toast'); toast.classList.replace('bg-green-500', 'bg-error'); document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-x-[150%]'); setTimeout(() => toast.classList.add('translate-x-[150%]'), 3000);
+        }
+
+        function resetMetricsToZero() {
+            document.getElementById('metric-total').innerText = "0"; document.getElementById('metric-ps').innerText = "0"; document.getElementById('metric-snack').innerText = "0"; document.getElementById('metric-net').innerText = "0"; document.getElementById('metric-debt').innerText = "0"; document.getElementById('metric-live').innerText = "0";
+            document.getElementById('activity-feed').innerHTML = `<div class="text-center text-gray-400 text-xs py-10">En attente de données...</div>`;
+        }
+
+        function parseSafeDate(dateStr) {
+            let cleanStr = dateStr.split(',')[0].trim(); let timeStr = dateStr.split(',')[1] ? dateStr.split(',')[1].trim() : '';
+            let d = new Date(dateStr); 
+            if (isNaN(d)) {
+                let parts = cleanStr.split('/');
+                if(parts.length === 3) { let timeParts = timeStr ? timeStr.split(':') : [0,0,0]; d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]), parseInt(timeParts[0]), parseInt(timeParts[1]||0)); }
+            }
+            return { dateObj: d, timeStr: timeStr };
+        }
+
+        function formatWithArabicDay(dateStr) {
+            let { dateObj, timeStr } = parseSafeDate(dateStr);
+            if (!isNaN(dateObj)) {
+                let businessD = new Date(dateObj.getTime() - (6 * 60 * 60 * 1000));
+                let arabicDay = businessD.toLocaleDateString('fr-FR', { weekday: 'long' });
+                let businessDateStr = businessD.toLocaleDateString('fr-FR'); 
+                return `<div class="text-sm font-bold text-[#0C1A3A]">${businessDateStr}</div><div class="text-xs text-primary font-bold mt-1 tracking-wider flex items-center gap-1"><span class="capitalize">${arabicDay}</span>${timeStr ? `<span class="text-gray-300 ml-1">|</span><span class="text-gray-500 ml-1">${timeStr}</span>` : ''}</div>`;
+            }
+            return `<div class="text-sm font-bold text-[#0C1A3A]">${dateStr}</div>`;
+        }
+
+        let ignoredLogs = [];
+        window.clearLog = function() {
+            if(globalStatsData && globalStatsData.recentActivity) {
+                globalStatsData.recentActivity.forEach(log => { ignoredLogs.push(log.timestamp + log.action + log.station); });
+                document.getElementById('activity-feed').innerHTML = `<div class="text-center text-gray-400 text-xs py-10">En attente de données...</div>`;
+            }
+        };
+
+        function updateActivityFeed(activities) {
+            const feed = document.getElementById('activity-feed');
+            const visibleLogs = (activities || []).filter(log => !ignoredLogs.includes(log.timestamp + log.action + log.station));
+            
+            if (visibleLogs.length === 0) { 
+                const emptyHTML = `<div class="text-center text-gray-400 text-xs py-10">En attente de données...</div>`;
+                if (feed.innerHTML !== emptyHTML) feed.innerHTML = emptyHTML; return; 
+            }
+            
+            const newFeedHTML = visibleLogs.map((log, index) => {
+                const isLatest = index === 0; let icon = 'info'; let color = 'text-gray-500 bg-gray-100';
+                if (log.action.includes('ADD GAME')) { icon = 'sports_esports'; color = 'text-primary bg-blue-50 border-blue-100'; }
+                else if (log.action.includes('ADD SNACK')) { icon = 'fastfood'; color = 'text-tertiary bg-orange-50 border-orange-100'; }
+                else if (log.action.includes('PARTIAL') || log.action.includes('CLOSED')) { icon = 'payments'; color = 'text-secondary bg-blue-50 border-blue-100'; }
+                else if (log.action.includes('WIPE') || log.action.includes('EXPENSE')) { icon = 'delete'; color = 'text-error bg-red-50 border-red-100'; }
+                return `<div class="flex items-start gap-3 relative group"><div class="w-8 h-8 rounded-full flex items-center justify-center border ${color} shrink-0 relative z-10 ${isLatest ? 'shadow-md shadow-blue-500/20' : ''}"><span class="material-symbols-outlined text-[16px]">${icon}</span></div><div class="pt-1 min-w-0 flex-1"><div class="flex justify-between items-center mb-0.5"><span class="text-[10px] md:text-xs font-bold text-[#0C1A3A] uppercase tracking-wider">${log.action}</span><span class="text-[9px] md:text-[10px] font-mono text-gray-400 whitespace-nowrap">${log.timestamp.split(', ')[1] || log.timestamp}</span></div><p class="text-[11px] md:text-xs text-gray-500 truncate" dir="ltr">${log.station}: <span class="text-gray-700 font-medium">${log.details}</span></p></div></div>`;
+            }).join('');
+
+            if (feed.innerHTML !== newFeedHTML) feed.innerHTML = newFeedHTML;
+        }
+
+        function buildAnalytics(historyData) {
+            fullHistoryData = historyData || [];
+            if (fullHistoryData.length === 0) return;
+
+            document.getElementById('cloud-history-tbody').innerHTML = fullHistoryData.slice().reverse().map(row => {
+                let expensesTotal = row.expenses_total || 0; let expHTML = `<span class="text-gray-400">Aucune</span>`;
+                if(expensesTotal > 0) expHTML = `<div class="text-error font-bold">- ${expensesTotal} DA</div>`;
+                const finalNetVault = (row.playstation_total + row.snack_total) - expensesTotal;
+                return `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">${formatWithArabicDay(row.date)}</td>
+                    <td class="px-6 py-4 text-primary font-bold text-right">${row.playstation_total} DA</td>
+                    <td class="px-6 py-4 text-tertiary font-bold text-right">${row.snack_total} DA</td>
+                    <td class="px-6 py-4 text-right">${expHTML}</td>
+                    <td class="px-6 py-4 text-secondary font-bold text-right text-lg">${finalNetVault} DA</td>
+                </tr>`;
+            }).join('');
+
+            let totalPS = 0, totalSnacks = 0, dates = [], psData = [], snackData = [];
+            const chartData = fullHistoryData.slice(0, 30).reverse();
+            chartData.forEach(row => {
+                totalPS += row.playstation_total; totalSnacks += row.snack_total;
+                let { dateObj } = parseSafeDate(row.date);
+                dates.push(!isNaN(dateObj) ? new Date(dateObj.getTime() - (6 * 60 * 60 * 1000)).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : row.date);
+                psData.push(row.playstation_total); snackData.push(row.snack_total);
+            });
+
+            Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = 'Plus Jakarta Sans';
+            if(trendChartInstance) trendChartInstance.destroy();
+            trendChartInstance = new Chart(document.getElementById('trendChart'), { 
+                type: 'line', 
+                data: { labels: dates, datasets: [ { label: 'PlayStation (DA)', data: psData, borderColor: '#1A56DB', backgroundColor: 'rgba(26,86,219,0.1)', fill: true, tension: 0.4 }, { label: 'Buvette (DA)', data: snackData, borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.4 } ] }, 
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } } 
+            });
+            
+            if(splitChartInstance) splitChartInstance.destroy();
+            splitChartInstance = new Chart(document.getElementById('splitChart'), { 
+                type: 'doughnut', 
+                data: { labels: ['PlayStation', 'Buvette'], datasets: [{ data: [totalPS, totalSnacks], backgroundColor: ['#1A56DB', '#F59E0B'], borderWidth: 0 }] }, 
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#475569' } } } } 
+            });
+        }
+
+        function updateDashboardUI(stats) {
+            if (!stats) { resetMetricsToZero(); return; }
+            const profit = stats.profit || { playstation: 0, snacks: 0, snacksNet: 0, expenses: 0 };
+            
+            document.getElementById('metric-total').innerText = profit.playstation + profit.snacks; 
+            document.getElementById('metric-ps').innerText = profit.playstation; 
+            document.getElementById('metric-snack').innerText = profit.snacks; 
+            document.getElementById('metric-net').innerText = profit.snacksNet || 0; 
+            document.getElementById('metric-debt').innerText = stats.totalDebt || 0;
+
+            const stationsList = stats.stations || [];
+            let totalLive = 0; const grid = document.getElementById('stations-grid');
+            const sortedStations = stationsList.sort((a, b) => (b.isActive === a.isActive) ? 0 : b.isActive ? 1 : -1);
+
+            sortedStations.forEach((s, index) => {
+                const total = (s.psTotal || 0) + (s.snackTotal || 0);
+                if (s.isActive) totalLive += total;
+                let timeStr = "--:--";
+                if (s.isActive && s.startTime) { 
+                    const elapsed = Date.now() - s.startTime; 
+                    const h = Math.floor(elapsed / 3600000); const m = Math.floor((elapsed % 3600000) / 60000).toString().padStart(2, '0'); 
+                    timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`; 
+                }
+                
+                const border = s.isActive ? (s.isWarning ? 'border-error/50 bg-red-50 hover:border-error' : 'border-blue-200 bg-white hover:border-primary shadow-sm') : 'border-gray-200 bg-gray-50/50 opacity-70 cursor-default';
+                const textCol = s.isActive ? (s.isWarning ? 'text-error animate-pulse' : 'text-primary') : 'text-gray-400';
+                const icon = s.isActive ? 'tv' : 'tv_off';
+                const cursor = s.isActive ? 'cursor-pointer active:scale-95 hover:-translate-y-1 hover:shadow-lg' : 'cursor-default';
+
+                let card = document.getElementById(`cloud-station-${s.id}`);
+                if (!card) { card = document.createElement('div'); card.id = `cloud-station-${s.id}`; card.onclick = () => { if (card.dataset.active === "true") window.openModal(s.id); }; grid.appendChild(card); }
+                card.className = `station-card p-4 rounded-[1.25rem] border ${border} transition-all duration-300 ${cursor}`;
+                card.dataset.active = s.isActive;
+
+                const newInner = `<div class="flex justify-between items-start mb-3 md:mb-4 pointer-events-none"><div><span class="text-[9px] md:text-[10px] font-bold tracking-[0.2em] uppercase text-gray-500">St 0${s.id}</span><h3 class="font-space font-bold text-base md:text-lg text-[#071E52] mt-0.5 leading-none">SONY ${s.type}</h3></div><span class="material-symbols-outlined ${textCol} text-[20px] md:text-[24px] pointer-events-none">${icon}</span></div><div class="flex justify-between items-end pointer-events-none"><span class="font-mono font-bold text-xs md:text-sm ${textCol}">${s.isActive ? timeStr : 'Disponible'}</span><span class="font-bold text-sm md:text-base ${s.isActive ? 'text-[#071E52]' : 'text-gray-400'} leading-none">${total} <span class="text-[9px] md:text-[10px] ${s.isActive ? 'text-gray-500' : 'text-gray-400'}">DA</span></span></div>`;
+                if (card.innerHTML !== newInner) card.innerHTML = newInner;
+                if (grid.children[index] !== card) grid.insertBefore(card, grid.children[index]);
+            });
+
+            document.getElementById('metric-live').innerText = totalLive;
+            updateActivityFeed(stats.recentActivity || []);
+            if(stats.history) buildAnalytics(stats.history);
+        }
+
+        window.openModal = function(id) {
+            if (!globalStatsData) return;
+            const station = globalStatsData.stations?.find(s => s.id === id); if (!station) return;
+            document.getElementById('modal-title').innerText = `Station 0${station.id} (${station.type})`; document.getElementById('modal-total').innerText = `${(station.psTotal || 0) + (station.snackTotal || 0)} DA`;
+            
+            const itemsContainer = document.getElementById('modal-items');
+            if (station.history && station.history.length > 0) {
+                itemsContainer.innerHTML = station.history.map(item => {
+                    const isGame = item.type === 'game'; const isPayment = item.type === 'payment';
+                    const icon = isGame ? 'sports_esports' : (isPayment ? 'payments' : 'fastfood');
+                    const color = isGame ? 'text-primary bg-blue-50' : (isPayment ? 'text-secondary bg-blue-50' : 'text-tertiary bg-orange-50');
+                    const title = isGame ? item.gameType : (isPayment ? 'Paiement partiel' : `${item.qty}x ${item.name}`);
+                    return `<div class="flex justify-between items-center p-2.5 md:p-3 rounded-xl bg-gray-50 border border-gray-100"><div class="flex items-center gap-2.5 md:gap-3 overflow-hidden"><div class="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center shrink-0 ${color}"><span class="material-symbols-outlined text-[14px] md:text-[16px]">${icon}</span></div><span class="text-xs md:text-sm font-bold text-gray-800 truncate">${title}</span></div><span class="text-[11px] md:text-xs font-mono ${isPayment ? 'text-error' : 'text-gray-600'} whitespace-nowrap pl-2">${isPayment ? '-' : '+'}${item.amount} DA</span></div>`;
+                }).join('');
+            } else { itemsContainer.innerHTML = `<p class="text-center text-gray-500 text-xs py-6">Aucune activité</p>`; }
+
+            const modal = document.getElementById('receipt-modal'); const content = document.getElementById('receipt-content');
+            modal.classList.remove('hide'); void modal.offsetWidth; modal.classList.remove('opacity-0'); content.classList.remove('translate-y-full', 'scale-95');
+        };
+
+        window.closeModal = function() {
+            const modal = document.getElementById('receipt-modal'); const content = document.getElementById('receipt-content');
+            modal.classList.add('opacity-0'); if(window.innerWidth < 640) content.classList.add('translate-y-full'); else content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hide'), 300);
+        };
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            const btn = document.getElementById('login-btn'); 
+            const usernameInput = document.getElementById('username').value.trim(); 
+            const passwordInput = document.getElementById('password').value.trim(); 
+            const rememberMe = document.getElementById('remember-me').checked;
+            
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Authentification...`; 
+            btn.classList.add('opacity-80', 'pointer-events-none');
+            
+            try {
+                const snapshot = await db.ref(`licenses/${usernameInput}`).once('value');
+                if (!snapshot.exists()) throw new Error("Compte introuvable.");
+                const userData = snapshot.val();
+                if (userData.password !== passwordInput) throw new Error("Mot de passe invalide."); 
+                
+                if(rememberMe) { localStorage.setItem('flux_remember_user', usernameInput); localStorage.setItem('flux_remember_pass', passwordInput); } 
+                else { localStorage.removeItem('flux_remember_user'); localStorage.removeItem('flux_remember_pass'); }
+                
+                currentUser = usernameInput; 
+                document.getElementById('lounge-name-display').innerText = currentUser;
+                document.getElementById('login-screen').classList.add('opacity-0', 'scale-95', 'pointer-events-none', 'absolute');
+                
+                setTimeout(() => { 
+                    document.getElementById('login-screen').classList.add('hide'); 
+                    const dash = document.getElementById('dashboard-screen'); 
+                    dash.classList.remove('hide'); void dash.offsetWidth; 
+                    dash.classList.remove('opacity-0', 'scale-95'); 
+                }, 300);
+
+                unsubscribeListener = db.ref(`licenses/${currentUser}/liveStats`).on('value', (snapshot) => {
+                    const stats = snapshot.val();
+                    if(stats && Object.keys(stats).length > 1) { 
+                        globalStatsData = stats; updateDashboardUI(stats);
+                        document.getElementById('sync-time-display').innerText = new Date(stats.lastUpdate).toLocaleTimeString('fr-FR');
+                        const timeDiff = Math.abs(Date.now() - stats.lastUpdate);
+                        if (timeDiff > 60000) { 
+                            document.getElementById('live-indicator').className = "px-2 py-0.5 rounded flex items-center gap-1.5 font-bold uppercase tracking-widest bg-gray-200 border border-gray-300 text-gray-600"; 
+                            document.getElementById('live-indicator').innerHTML = `<div class="w-1.5 h-1.5 rounded-full bg-gray-500"></div> Hors ligne`; 
+                        } else { 
+                            document.getElementById('live-indicator').className = "px-2 py-0.5 rounded flex items-center gap-1.5 font-bold uppercase tracking-widest bg-green-100 border border-green-200 text-green-700 shadow-sm"; 
+                            document.getElementById('live-indicator').innerHTML = `<div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Live`; 
+                        }
+                    } else if (!stats) { resetMetricsToZero(); }
+                });
+            } catch (err) { 
+                showError(err.message); 
+                btn.innerHTML = `Accéder au Cloud <span class="material-symbols-outlined text-[18px]">cloud_sync</span>`; 
+                btn.classList.remove('opacity-80', 'pointer-events-none'); 
+            }
+        });
+
+        window.logout = function() {
+            if (unsubscribeListener) db.ref(`licenses/${currentUser}/liveStats`).off('value', unsubscribeListener); 
+            currentUser = null; globalStatsData = null; resetMetricsToZero();
+            const dash = document.getElementById('dashboard-screen'); dash.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                dash.classList.add('hide'); const login = document.getElementById('login-screen'); login.classList.remove('hide', 'absolute'); void login.offsetWidth; login.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                const btn = document.getElementById('login-btn'); btn.innerHTML = `Accéder au Cloud <span class="material-symbols-outlined text-[18px]">cloud_sync</span>`; btn.classList.remove('opacity-80', 'pointer-events-none');
+                if(!document.getElementById('remember-me').checked) document.getElementById('password').value = '';
+            }, 300);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Flux Software — Produit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--p:#1A56DB;--pl:#3B82F6;--pg:#60A5FA;--pd:#0F3A8A;--pud:#071E52;--wa:#25D366;--wad:#075E54;--white:#fff;--bg:#EFF6FF;--card:rgba(255,255,255,0.8);--border:rgba(255,255,255,0.7);--t1:#0C1A3A;--t2:#4B6CB7;--tm:#7B97C7;--sh:0 8px 32px rgba(26,86,219,.16);--shd:0 24px 64px rgba(7,30,82,.18);--fh:'Poppins',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--tr:all .3s cubic-bezier(.4,0,.2,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;min-height:100vh}
+.bg-mesh{position:fixed;inset:0;z-index:-1;background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 40%,#EFF6FF 100%)}
+.bg-mesh::before{content:'';position:absolute;width:700px;height:700px;top:-200px;right:-150px;background:radial-gradient(circle,rgba(59,130,246,.15) 0%,transparent 70%)}
+.bg-mesh::after{content:'';position:absolute;width:500px;height:500px;bottom:-150px;left:-100px;background:radial-gradient(circle,rgba(26,86,219,.1) 0%,transparent 70%)}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 24px;background:rgba(255,255,255,0.8);backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid rgba(255,255,255,0.85);box-shadow:0 1px 20px rgba(26,86,219,.08)}
+.nav-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nli{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(26,86,219,.35)}
+.nli svg{width:24px;height:24px}
+.nltxt{font-family:var(--fh);font-weight:700;font-size:17px;color:var(--pd)}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.lang-sw{display:flex;gap:4px;background:rgba(26,86,219,.06);padding:4px;border-radius:10px}
+.lang-btn{border:none;background:transparent;cursor:pointer;font-size:12px;font-weight:600;color:var(--tm);padding:5px 9px;border-radius:7px;transition:var(--tr);font-family:var(--fb)}
+.lang-btn.active{background:var(--white);color:var(--p);box-shadow:0 2px 8px rgba(26,86,219,.15)}
+.back-btn{display:flex;align-items:center;gap:8px;color:var(--t2);font-size:14px;font-weight:500;text-decoration:none;padding:8px 14px;border-radius:12px;transition:var(--tr)}
+.back-btn:hover{background:rgba(26,86,219,.08);color:var(--p)}
+.back-btn svg{width:16px;height:16px}
+
+/* MAIN */
+.main{padding:100px 24px 60px;max-width:1200px;margin:0 auto}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tm);margin-bottom:32px}
+.breadcrumb a{color:var(--p);text-decoration:none}
+.breadcrumb span{color:var(--tm)}
+
+/* PRODUCT LAYOUT */
+.product-layout{display:grid;grid-template-columns:1fr 420px;gap:48px;align-items:start}
+
+/* LEFT: PRODUCT INFO */
+.product-info{}
+.prod-badge-row{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.prod-badge-pill{font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;color:white}
+.prod-category{font-size:12px;color:var(--tm);background:rgba(26,86,219,.07);padding:5px 12px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.prod-name-lg{font-family:var(--fh);font-weight:900;font-size:clamp(36px,5vw,54px);color:var(--pud);letter-spacing:-1.5px;line-height:1.05;margin-bottom:10px}
+.prod-name-lg .grad{background:linear-gradient(135deg,var(--p),var(--pg));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.prod-tagline{font-size:18px;color:var(--t2);margin-bottom:20px;font-style:italic;font-weight:400}
+.rating-row{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.stars-lg{display:flex;gap:3px}
+.star-lg{font-size:20px;color:#F59E0B}
+.star-lg.empty{color:#E2E8F0}
+.rating-num{font-family:var(--fh);font-weight:800;font-size:22px;color:var(--t1)}
+.review-cnt{font-size:14px;color:var(--tm)}
+
+/* ASPECT RATIO 16/9 OBJECT FIT CONTAIN */
+.prod-img-container{width:100%;aspect-ratio:16/9;border-radius:24px;overflow:hidden;margin-bottom:32px;background:linear-gradient(135deg,rgba(26,86,219,.06),rgba(59,130,246,.04));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 10px 40px rgba(26,86,219,.08)}
+.prod-img-full{width:100%;height:100%;object-fit:contain;padding:12px;transition:transform 0.5s ease;}
+.prod-img-container:hover .prod-img-full{transform:scale(1.03)}
+.prod-img-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:.4}
+.prod-img-empty svg{width:64px;height:64px;stroke:var(--p)}
+.prod-img-empty span{font-size:14px;font-weight:600;color:var(--p)}
+.prod-desc-full{font-size:16px;color:var(--t2);line-height:1.75;margin-bottom:32px}
+.features-title{font-family:var(--fh);font-weight:700;font-size:20px;color:var(--pud);margin-bottom:16px}
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:40px}
+.feat-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.7);border:1px solid rgba(26,86,219,.1);border-radius:16px;padding:14px 16px;backdrop-filter:blur(10px);transition:var(--tr)}
+.feat-item:hover{background:rgba(255,255,255,0.9);box-shadow:0 4px 12px rgba(26,86,219,.05)}
+.feat-check{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--pl));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.feat-check svg{width:14px;height:14px;stroke:white;stroke-width:2.5}
+.feat-txt{font-size:14px;font-weight:600;color:var(--t1)}
+
+/* RIGHT: ACTION CARD (Replacing Order Form) */
+.action-card{background:rgba(255,255,255,0.85);backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,0.95);border-radius:32px;box-shadow:var(--shd);padding:40px;position:sticky;top:100px;display:flex;flex-direction:column;gap:24px}
+.ac-header{text-align:center;}
+.ac-img-container{width:100%;aspect-ratio:16/9;border-radius:20px;overflow:hidden;margin-bottom:24px;background:rgba(26,86,219,.03);border:1px solid rgba(26,86,219,.1);display:flex;align-items:center;justify-content:center}
+.ac-img{width:100%;height:100%;object-fit:contain;padding:10px}
+.ac-price{font-family:var(--fh);font-weight:900;font-size:42px;color:var(--p);letter-spacing:-1.5px;line-height:1}
+.ac-price-note{font-size:14px;color:var(--tm);margin-top:6px;font-weight:500;text-transform:uppercase;letter-spacing:1px}
+
+/* THE BIG WHATSAPP BUTTON */
+.btn-wa-huge{width:100%;background:linear-gradient(135deg, #25D366, #128C7E);color:white;border:none;cursor:pointer;font-size:16px;font-weight:700;font-family:var(--fh);padding:14px 20px;border-radius:16px;box-shadow:0 8px 24px rgba(37, 211, 102, 0.35);transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;position:relative;overflow:hidden}
+.btn-wa-huge::before{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(to right,transparent,rgba(255,255,255,0.3),transparent);transform:skewX(-20deg);animation:shine 3s infinite}
+@keyframes shine{0%{left:-100%}20%{left:200%}100%{left:200%}}
+.btn-wa-huge:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 12px 32px rgba(37, 211, 102, 0.45)}
+.btn-wa-huge svg{width:28px;height:28px;fill:currentColor}
+
+.ac-subtext{font-size:13px;color:var(--tm);text-align:center;line-height:1.5}
+.trust-row{display:flex;align-items:center;justify-content:center;gap:20px;padding-top:20px;border-top:1px solid rgba(26,86,219,.08)}
+.trust-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);font-weight:600}
+.trust-item svg{width:16px;height:16px;stroke:var(--p)}
+
+/* CONTACT STRIP (Secondary options) */
+.cs-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}
+.cs-item{display:flex;align-items:center;gap:12px;text-decoration:none;padding:12px 16px;border-radius:16px;transition:var(--tr);background:rgba(255,255,255,0.5);border:1px solid var(--border)}
+.cs-item:hover{background:var(--white);box-shadow:0 4px 12px rgba(26,86,219,.08)}
+.cs-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cs-ico svg{width:20px;height:20px;stroke:white}
+.cs-info span{display:block;font-size:12px;color:var(--tm);font-weight:500}
+.cs-info strong{font-size:14px;color:var(--t1);font-weight:700}
+
+/* MOBILE STICKY WHATSAPP BUTTON */
+.mobile-action-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:90;padding:16px 24px;background:rgba(255,255,255,0.95);backdrop-filter:blur(24px);border-top:1px solid rgba(26,86,219,.1);box-shadow:0 -4px 24px rgba(7,30,82,.1)}
+.mob-btn-wa{width:100%;background:linear-gradient(135deg, #25D366, #128C7E);color:white;text-decoration:none;font-size:16px;font-weight:700;font-family:var(--fh);padding:16px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(37, 211, 102, 0.35)}
+.mob-btn-wa svg{width:22px;height:22px;fill:currentColor}
+
+[dir="rtl"] .nav-right{flex-direction:row-reverse}
+[dir="rtl"] .breadcrumb{flex-direction:row-reverse}
+[dir="rtl"] .feat-item{flex-direction:row-reverse}
+[dir="rtl"] .cs-item{flex-direction:row-reverse;text-align:right}
+[dir="rtl"] .trust-row{flex-direction:row-reverse}
+
+@media(max-width:900px){
+  .product-layout{grid-template-columns:1fr}
+  .action-card{padding:24px;border-radius:24px;box-shadow:var(--sh);margin-bottom:80px}
+  .mobile-action-bar{display:block}
+  .features-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<nav class="nav">
+  <div class="nav-in">
+    <a href="/" class="nav-logo">
+      <div class="nli"><svg viewBox="0 0 60 60" fill="none"><path d="M20 22C20 22 28 18 36 24C44 30 44 38 36 42" stroke="white" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M40 20C40 20 32 18 24 26C16 34 18 42 26 44" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M37 37L44 32L44 44Z" fill="white"/></svg></div>
+      <span class="nltxt">Flux Software</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-sw">
+        <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+        <button class="lang-btn" onclick="setLang('ar')">AR</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+      </div>
+      <a href="/" class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span data-i18n="nav_back">Retour</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="breadcrumb">
+    <a href="/" data-i18n="bc_home">Accueil</a>
+    <span>›</span>
+    <a href="/#products" data-i18n="bc_products">Produits</a>
+    <span>›</span>
+    <span id="bc-name">Produit</span>
+  </div>
+
+  <div class="product-layout">
+    <div class="product-info" id="product-info">
+      <div style="text-align:center;padding:60px;color:var(--tm)" data-i18n="loading">Chargement...</div>
+    </div>
+
+    <div class="action-card" id="action-card">
+      <div id="action-content"></div>
+    </div>
+  </div>
+</div>
+
+<div class="mobile-action-bar" id="mob-sticky">
+  <a href="#" class="mob-btn-wa" id="mob-wa-btn" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+    <span data-i18n="wa_order">Commander via WhatsApp</span>
+  </a>
+</div>
+
+<script>
+// DICTIONNAIRE DE TRADUCTION POUR PRODUCT.HTML
+const T = {
+  fr: {
+    nav_back: "Retour", bc_home: "Accueil", bc_products: "Produits", loading: "Chargement...",
+    not_found_title: "Produit introuvable", not_found_back: "Retour à l'accueil", included: "Ce qui est inclus",
+    wa_order: "Commander via WhatsApp", wa_sub: "Discutez directement avec notre équipe pour finaliser votre achat en toute simplicité.",
+    t_secure: "Paiement Sécurisé", t_resp: "Support 7j/7",
+    other_contact: "Autres moyens de contact", call: "Appeler", email: "Email", img_na: "Image bientôt disponible", reviews: "avis",
+    wa_msg_prefix: "Bonjour, je souhaite commander :"
+  },
+  ar: {
+    nav_back: "رجوع", bc_home: "الرئيسية", bc_products: "المنتجات", loading: "جاري التحميل...",
+    not_found_title: "المنتج غير موجود", not_found_back: "العودة للرئيسية", included: "ما يتضمنه المنتج",
+    wa_order: "اطلب عبر واتساب", wa_sub: "تحدث مباشرة مع فريقنا لإتمام عملية الشراء بكل سهولة.",
+    t_secure: "دفع آمن", t_resp: "دعم 7 أيام",
+    other_contact: "طرق تواصل أخرى", call: "اتصال", email: "بريد إلكتروني", img_na: "الصورة قريباً", reviews: "تقييم",
+    wa_msg_prefix: "مرحباً، أريد طلب :"
+  },
+  en: {
+    nav_back: "Back", bc_home: "Home", bc_products: "Products", loading: "Loading...",
+    not_found_title: "Product not found", not_found_back: "Back to home", included: "What's included",
+    wa_order: "Order via WhatsApp", wa_sub: "Chat directly with our team to easily finalize your purchase.",
+    t_secure: "Secure Payment", t_resp: "24/7 Support",
+    other_contact: "Other contact methods", call: "Call", email: "Email", img_na: "Image coming soon", reviews: "reviews",
+    wa_msg_prefix: "Hello, I would like to order:"
+  }
+};
+
+const productId = window.location.pathname.split('/').pop();
+const WA_NUMBER = "213667300130";
+let product = null;
+let lang = 'fr';
+
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === l));
+  
+  const t = T[l];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    if (t[el.dataset.i18n]) el.textContent = t[el.dataset.i18n];
+  });
+  
+  if (product) renderProduct(product);
+}
+
+function stars(r){
+  return Array.from({length:5},(_,i)=>`<span class="star-lg${i<Math.floor(r)?'':' empty'}">${i<Math.floor(r)?'★':'☆'}</span>`).join('');
+}
+
+function buildActionCard(){
+  const t = T[lang];
+  const prodName = product.name?.[lang] || product.name?.fr || product.id;
+  const priceNote = product.priceNote?.[lang] || product.priceNote?.fr || '';
+  const waMsg = encodeURIComponent(`${t.wa_msg_prefix} ${prodName}`);
+  const waLink = `https://api.whatsapp.com/send/?phone=${WA_NUMBER}&text=${waMsg}`;
+  
+  // Update Mobile Sticky button Link
+  document.getElementById('mob-wa-btn').href = waLink;
+
+  const imageHtml = product.image 
+    ? `<div class="ac-img-container"><img src="${product.image}" alt="${prodName}" class="ac-img"/></div>` 
+    : '';
+
+  return `
+  <div class="ac-header">
+    ${imageHtml}
+    <div class="ac-price">${product.price} <span style="font-size:24px">${product.currency||'DA'}</span></div>
+    <div class="ac-price-note">${priceNote}</div>
+  </div>
+  
+  <a href="${waLink}" target="_blank" class="btn-wa-huge">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+    ${t.wa_order}
+  </a>
+  <p class="ac-subtext">${t.wa_sub}</p>
+  
+  <div class="trust-row">
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>${t.t_secure}</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${t.t_resp}</div>
+  </div>
+
+  <div style="margin-top:10px">
+    <div style="font-size:12px;color:var(--tm);margin-bottom:8px;font-weight:600">${t.other_contact}</div>
+    <div class="cs-grid">
+      <a href="tel:+213559419487" class="cs-item">
+        <div class="cs-ico" style="background:linear-gradient(135deg,#1A56DB,#3B82F6)"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <div class="cs-info"><span>${t.call}</span><strong>0559 41 94 87</strong></div>
+      </a>
+    </div>
+  </div>`;
+}
+
+function renderProduct(p) {
+  product = p;
+  const t = T[lang];
+  const name = p.name?.[lang] || p.name?.fr || p.id;
+  const tag = p.tagline?.[lang] || p.tagline?.fr || '';
+  const desc = p.description?.[lang] || p.description?.fr || '';
+  const badge = p.badge?.[lang] || p.badge?.fr || '';
+  const category = p.category || 'Logiciel';
+  const features = p.features?.[lang] && p.features[lang].length ? p.features[lang] : (p.features?.fr || []);
+
+  document.title = `${name} — Flux Software`;
+  document.getElementById('bc-name').textContent = name;
+
+  const featsHtml = features.map(f=>`
+    <div class="feat-item">
+      <div class="feat-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <span class="feat-txt">${f}</span>
+    </div>`).join('');
+
+  document.getElementById('product-info').innerHTML = `
+    <div class="prod-badge-row">
+      ${badge ? `<span class="prod-badge-pill" style="background:${p.badgeColor||'#1A56DB'}">${badge}</span>`:''}
+      <span class="prod-category">${category}</span>
+    </div>
+    <h1 class="prod-name-lg"><span class="grad">${name}</span></h1>
+    <p class="prod-tagline">${tag}</p>
+    <div class="rating-row">
+      <div class="stars-lg">${stars(p.rating||4.8)}</div>
+      <span class="rating-num">${p.rating||4.8}</span>
+      <span class="review-cnt">(${p.reviews||0} ${t.reviews})</span>
+    </div>
+    <div class="prod-img-container">
+      ${p.image?`<img src="${p.image}" alt="${name}" class="prod-img-full"/>` :
+      `<div class="prod-img-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>${t.img_na}</span>
+      </div>`}
+    </div>
+    <p class="prod-desc-full">${desc}</p>
+    ${features.length?`<h3 class="features-title">${t.included}</h3><div class="features-grid">${featsHtml}</div>`:''}
+  `;
+
+  // Build the new Action Card (replaces the form)
+  document.getElementById('action-content').innerHTML = buildActionCard();
+}
+
+async function loadProduct() {
+  const t = T[lang];
+  try {
+    const r = await fetch(`/api/products/${productId}`);
+    if(!r.ok) throw new Error('not found');
+    renderProduct(await r.json());
+  } catch {
+    document.getElementById('product-info').innerHTML = `<div style="text-align:center;padding:60px"><h2 style="color:var(--pud)">${t.not_found_title}</h2><a href="/" style="color:var(--p)">${t.not_found_back}</a></div>`;
+    document.getElementById('action-card').style.display = 'none';
+    document.getElementById('mob-sticky').style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setLang('fr'); // Init
+  loadProduct();
+});
+</script>
+</body>
+</html>

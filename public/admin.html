@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Flux Software — Administration</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--p:#1A56DB;--pl:#3B82F6;--pg:#60A5FA;--pd:#0F3A8A;--t1:#0C1A3A;--t2:#4B6CB7;--tm:#7B97C7;--bg:#F3F4F6;--white:#fff;--border:#E5E7EB;--fh:'Poppins',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--tr:all .2s ease;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--bg);color:var(--t1);display:flex;min-height:100vh;}
+/* SIDEBAR */
+.sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);padding:24px;display:flex;flex-direction:column;gap:32px;position:fixed;height:100vh;top:0;left:0;}
+.logo{display:flex;align-items:center;gap:12px;font-family:var(--fh);font-weight:700;font-size:18px;color:var(--p);}
+.logo-ic{width:36px;height:36px;background:var(--p);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.logo-ic svg{width:20px;stroke:white;}
+.nav{display:flex;flex-direction:column;gap:8px;}
+.nav-btn{background:transparent;border:none;padding:12px 16px;border-radius:10px;text-align:left;font-size:14px;font-weight:600;font-family:var(--fb);color:var(--t2);cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:12px;}
+.nav-btn svg{width:18px;}
+.nav-btn:hover{background:rgba(26,86,219,.05);color:var(--p);}
+.nav-btn.active{background:var(--p);color:var(--white);}
+/* MAIN */
+.main{margin-left:260px;flex:1;padding:40px;max-width:1200px;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;}
+.title{font-family:var(--fh);font-weight:700;font-size:28px;}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:32px;}
+.stat-card{background:var(--white);padding:24px;border-radius:16px;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.02);}
+.stat-val{font-family:var(--fh);font-size:32px;font-weight:700;color:var(--p);line-height:1;margin-bottom:8px;}
+.stat-lbl{font-size:13px;font-weight:600;color:var(--tm);}
+/* VIEWS */
+.view{display:none;}
+.view.active{display:block;}
+/* TABLES */
+.card{background:var(--white);border-radius:16px;border:1px solid var(--border);overflow:hidden;}
+.card-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.btn-primary{background:var(--p);color:white;border:none;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;font-family:var(--fb);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:var(--tr);}
+.btn-primary:hover{background:var(--pd);}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:16px 24px;text-align:left;font-size:14px;border-bottom:1px solid var(--border);}
+th{font-weight:600;color:var(--tm);font-size:12px;text-transform:uppercase;}
+.badge{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.badge.new{background:#FEF08A;color:#854D0E;}
+.badge.processing{background:#DBEAFE;color:#1E40AF;}
+.badge.done{background:#DCFCE7;color:#166534;}
+.act-select{padding:6px;border-radius:6px;border:1px solid var(--border);font-size:13px;font-family:var(--fb);}
+.btn-icon{background:transparent;border:none;cursor:pointer;color:var(--tm);padding:6px;border-radius:6px;}
+.btn-icon:hover{color:#EF4444;background:#FEE2E2;}
+.btn-icon.edit:hover{color:var(--p);background:#DBEAFE;}
+
+/* PRODUCT LIST */
+.prod-img-sm{width:48px;height:48px;border-radius:8px;object-fit:cover;background:#f3f4f6;}
+.prod-row-name{font-weight:600;color:var(--t1);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);width:100%;max-width:600px;border-radius:20px;padding:32px;max-height:90vh;overflow-y:auto;}
+.modal-title{font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;}
+.form-input,.form-textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-family:var(--fb);font-size:14px;}
+.form-input:focus{outline:none;border-color:var(--p);}
+.form-textarea{min-height:100px;resize:vertical;}
+.modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;}
+.btn-sec{background:transparent;border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    Flux Admin
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="switchTab('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Dashboard
+    </button>
+    <button class="nav-btn" onclick="switchTab('orders')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> Commandes
+    </button>
+    <button class="nav-btn" onclick="switchTab('products')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Produits
+    </button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- DASHBOARD -->
+  <div id="view-dash" class="view active">
+    <div class="header"><h1 class="title">Vue d'ensemble</h1></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="st-total-ord">0</div><div class="stat-lbl">Commandes Totales</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-new-ord" style="color:#D97706">0</div><div class="stat-lbl">Nouvelles Commandes</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-today">0</div><div class="stat-lbl">Commandes (Aujourd'hui)</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-prods">0</div><div class="stat-lbl">Produits Actifs</div></div>
+    </div>
+  </div>
+
+  <!-- COMMANDES -->
+  <div id="view-orders" class="view">
+    <div class="header"><h1 class="title">Gestion des Commandes</h1></div>
+    <div class="card">
+      <table>
+        <thead><tr><th>ID</th><th>Client</th><th>Contact & Wilaya</th><th>Produit</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="orders-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PRODUITS -->
+  <div id="view-products" class="view">
+    <div class="header">
+      <h1 class="title">Catalogue Produits</h1>
+      <button class="btn-primary" onclick="openProductModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter Produit
+      </button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Image</th><th>Nom</th><th>Prix</th><th>Catégorie</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="products-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUIT -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <h2 class="modal-title" id="modal-title">Ajouter un Produit</h2>
+    <form id="product-form" onsubmit="saveProduct(event)">
+      <input type="hidden" id="prod-id" />
+      
+      <div class="form-group">
+        <label>Nom du produit</label>
+        <input type="text" id="prod-name" class="form-input" required />
+      </div>
+      
+      <div class="form-group" style="display:flex; gap:16px;">
+        <div style="flex:1;">
+          <label>Prix</label>
+          <input type="number" id="prod-price" class="form-input" required />
+        </div>
+        <div style="width:100px;">
+          <label>Devise</label>
+          <input type="text" id="prod-curr" class="form-input" value="DA" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Petite phrase d'accroche (Tagline)</label>
+        <input type="text" id="prod-tagline" class="form-input" placeholder="Ex: POS Gaming Hall..." />
+      </div>
+
+      <div class="form-group">
+        <label>Description complète</label>
+        <textarea id="prod-desc" class="form-textarea" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Catégorie (Ex: Logiciel Gaming)</label>
+        <input type="text" id="prod-cat" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <label>Image du produit (Format paysage 4:3 recommandé)</label>
+        <input type="file" id="prod-img" class="form-input" accept="image/*" />
+        <small style="color:var(--tm); display:block; margin-top:6px;">Laissez vide pour conserver l'image actuelle.</small>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-sec" onclick="closeModal()">Annuler</button>
+        <button type="submit" class="btn-primary" id="btn-save">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let currentProducts = [];
+
+// Navigation
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`view-${tab}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+  
+  if(tab === 'dash') loadStats();
+  if(tab === 'orders') loadOrders();
+  if(tab === 'products') loadProducts();
+}
+
+// Stats
+async function loadStats() {
+  const res = await fetch('/api/admin/stats');
+  const data = await res.json();
+  document.getElementById('st-total-ord').innerText = data.total_orders;
+  document.getElementById('st-new-ord').innerText = data.new_orders;
+  document.getElementById('st-today').innerText = data.today_orders;
+  document.getElementById('st-prods').innerText = data.active_products;
+}
+
+// Orders
+async function loadOrders() {
+  const res = await fetch('/api/admin/orders');
+  const orders = await res.json();
+  const tbody = document.getElementById('orders-tbody');
+  tbody.innerHTML = orders.map(o => `
+    <tr>
+      <td><strong style="color:var(--p)">#${o.id}</strong></td>
+      <td><strong>${o.name}</strong><br/><small style="color:var(--tm)">${o.message ? '📝 Message joint' : ''}</small></td>
+      <td>${o.phone}<br/><small style="color:var(--tm)">${o.wilaya}</small></td>
+      <td>${o.product_name}</td>
+      <td>${new Date(o.created_at).toLocaleDateString('fr-FR')}</td>
+      <td>
+        <select class="act-select" onchange="updateOrderStatus('${o.id}', this.value)" style="background:${o.status==='new'?'#FEF08A':(o.status==='processing'?'#DBEAFE':'#DCFCE7')}">
+          <option value="new" ${o.status==='new'?'selected':''}>Nouveau</option>
+          <option value="processing" ${o.status==='processing'?'selected':''}>En cours</option>
+          <option value="completed" ${o.status==='completed'?'selected':''}>Terminé</option>
+        </select>
+      </td>
+      <td>
+        <button class="btn-icon" onclick="deleteOrder('${o.id}')" title="Supprimer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function updateOrderStatus(id, status) {
+  await fetch(`/api/admin/orders/${id}/status`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({status})
+  });
+  loadStats();
+}
+
+async function deleteOrder(id) {
+  if(!confirm("Supprimer cette commande définitivement ?")) return;
+  await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
+  loadOrders();
+  loadStats();
+}
+
+// Products
+async function loadProducts() {
+  const res = await fetch('/api/admin/products');
+  currentProducts = await res.json();
+  const tbody = document.getElementById('products-tbody');
+  
+  tbody.innerHTML = currentProducts.map(p => `
+    <tr style="opacity: ${p.active ? '1' : '0.5'}">
+      <td>
+        ${p.image 
+          ? `<img src="${p.image}" class="prod-img-sm" />` 
+          : `<div class="prod-img-sm" style="display:flex;align-items:center;justify-content:center;font-size:10px;">Sans Image</div>`}
+      </td>
+      <td><div class="prod-row-name">${p.name?.fr || p.id}</div></td>
+      <td>${p.price} ${p.currency || 'DA'}</td>
+      <td><span class="badge" style="background:#E5E7EB">${p.category || 'Standard'}</span></td>
+      <td>
+        <button onclick="toggleProduct('${p.id}')" style="background:transparent;border:none;cursor:pointer;color:${p.active?'#166534':'#991B1B'}">
+          ${p.active ? '✅ Actif' : '❌ Inactif'}
+        </button>
+      </td>
+      <td>
+        <button class="btn-icon edit" onclick="openProductModal('${p.id}')" title="Modifier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn-icon" onclick="deleteProduct('${p.id}')" title="Supprimer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openProductModal(id = null) {
+  const modal = document.getElementById('product-modal');
+  const form = document.getElementById('product-form');
+  form.reset();
+  
+  if(id) {
+    const p = currentProducts.find(x => x.id === id);
+    document.getElementById('modal-title').innerText = "Modifier le Produit";
+    document.getElementById('prod-id').value = p.id;
+    document.getElementById('prod-name').value = p.name?.fr || '';
+    document.getElementById('prod-price').value = p.price || '';
+    document.getElementById('prod-curr').value = p.currency || 'DA';
+    document.getElementById('prod-tagline').value = p.tagline?.fr || '';
+    document.getElementById('prod-desc').value = p.description?.fr || '';
+    document.getElementById('prod-cat').value = p.category || '';
+  } else {
+    document.getElementById('modal-title').innerText = "Ajouter un Produit";
+    document.getElementById('prod-id').value = '';
+  }
+  
+  modal.classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('product-modal').classList.remove('open');
+}
+
+async function saveProduct(e) {
+  e.preventDefault();
+  document.getElementById('btn-save').innerText = 'Enregistrement...';
+  
+  const id = document.getElementById('prod-id').value;
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/admin/products/${id}` : '/api/admin/products';
+
+  const payload = {
+    name: { fr: document.getElementById('prod-name').value },
+    tagline: { fr: document.getElementById('prod-tagline').value },
+    description: { fr: document.getElementById('prod-desc').value },
+    price: document.getElementById('prod-price').value,
+    currency: document.getElementById('prod-curr').value,
+    category: document.getElementById('prod-cat').value,
+    rating: 4.8
+  };
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    const finalId = data.product.id;
+
+    const fileInput = document.getElementById('prod-img');
+    if (fileInput.files.length > 0) {
+      const formData = new FormData();
+      formData.append('image', fileInput.files[0]);
+      await fetch(`/api/admin/products/${finalId}/image`, {
+        method: 'POST',
+        body: formData
+      });
+    }
+
+    closeModal();
+    loadProducts();
+    loadStats();
+  } catch(err) {
+    alert("Erreur lors de l'enregistrement.");
+  } finally {
+    document.getElementById('btn-save').innerText = 'Enregistrer';
+  }
+}
+
+async function deleteProduct(id) {
+  if(!confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) return;
+  await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+  loadProducts();
+  loadStats();
+}
+
+async function toggleProduct(id) {
+  await fetch(`/api/admin/products/${id}/toggle`, { method: 'PATCH' });
+  loadProducts();
+  loadStats();
+}
+
+window.onload = loadStats;
+</script>
+</body>
+</html>
