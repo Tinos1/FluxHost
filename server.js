@@ -18,7 +18,41 @@ const CHARGILY_SECRET_KEY = process.env.CHARGILY_SECRET_KEY || 'test_sk_YOUR_TES
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// ==========================================
+// 🛡️ SECURITY LOCK FOR ADMIN PANEL & API 🛡️
+// ==========================================
+// This runs BEFORE the static files so nobody can bypass it by typing /admin.html
+app.use((req, res, next) => {
+  // Check if the user is trying to access the admin page or admin API
+  if (req.path.startsWith('/admin') || req.path.startsWith('/api/admin')) {
+    const authHeader = req.headers.authorization;
+    
+    // If no login data is sent, trigger the browser popup
+    if (!authHeader) {
+      res.setHeader('WWW-Authenticate', 'Basic realm="Flux Admin Panel"');
+      return res.status(401).send('Access Denied: Please log in.');
+    }
+    
+    // Decode the username and password
+    const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+    const user = auth[0];
+    const pass = auth[1];
+    
+    // Verify credentials
+    if (user === 'admin' && pass === '20060909') {
+      next(); // Correct! Let them into the admin panel.
+    } else {
+      res.setHeader('WWW-Authenticate', 'Basic realm="Flux Admin Panel"');
+      return res.status(401).send('Incorrect Username or Password.');
+    }
+  } else {
+    next(); // Let public pages (index, cloud, products) load normally
+  }
+});
+
+// Serve static files WITH clean URLs (automatically resolves /cloud to /cloud.html)
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Multer for image uploads
@@ -148,7 +182,6 @@ app.post('/api/orders', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Champs obligatoires manquants.' });
   }
 
-  // Vérifier le prix du produit
   const products = readJSON(PRODUCTS_FILE);
   const p = products.find(x => x.id === product_id);
   if (!p) return res.status(404).json({ success: false, message: 'Produit introuvable' });
@@ -160,13 +193,12 @@ app.post('/api/orders', async (req, res) => {
     product_id, product_name: product_name || '',
     message: message || '',
     created_at: new Date().toISOString(),
-    status: 'pending_payment' // Statut initial d'attente de paiement
+    status: 'pending_payment'
   };
   
   orders.unshift(newOrder);
   writeJSON(ORDERS_FILE, orders);
 
-  // Génération du lien de paiement Chargily V2
   try {
     const chargilyRes = await fetch('https://pay.chargily.net/test/api/v2/checkouts', {
       method: 'POST',
@@ -177,10 +209,10 @@ app.post('/api/orders', async (req, res) => {
       body: JSON.stringify({
         amount: parseInt(p.price),
         currency: "dzd",
-        payment_method: "edahabia", // Force Eddahabia
-        success_url: `http://localhost:3000/product/${product_id}?payment=success`,
-        failure_url: `http://localhost:3000/product/${product_id}?payment=failed`,
-        webhook_endpoint: `http://localhost:3000/api/webhook`, // Ton serveur recevra l'alerte ici
+        payment_method: "edahabia",
+        success_url: `https://fluxsoftwares.tech/product/${product_id}?payment=success`,
+        failure_url: `https://fluxsoftwares.tech/product/${product_id}?payment=failed`,
+        webhook_endpoint: `https://fluxsoftwares.tech/api/webhook`,
         description: `Commande ${newOrder.id} - ${product_name}`,
         metadata: { order_id: newOrder.id }
       })
@@ -199,9 +231,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-// ===== WEBHOOK CHARGILY =====
 app.post('/api/webhook', (req, res) => {
-  // Chargily envoie une requête ici quand un client paie avec succès.
   const event = req.body;
 
   if (event && event.type === 'checkout.paid') {
@@ -215,7 +245,7 @@ app.post('/api/webhook', (req, res) => {
         console.log(`[PAIEMENT REÇU] Commande ${orderId} payée avec succès !`);
      }
   }
-  res.sendStatus(200); // Important: Dire à Chargily qu'on a bien reçu le message
+  res.sendStatus(200);
 });
 
 // Admin order routes
@@ -251,6 +281,14 @@ app.get('/api/admin/stats', (req, res) => {
 
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/product/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'product.html')));
-app.get('/{*splat}', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// Catch-all route to prevent crashes and clean up URLs
+app.get('*', (req, res) => {
+   if (!req.path.includes('.')) {
+      res.sendFile(path.join(__dirname, 'public', 'index.html'));
+   } else {
+      res.status(404).send('Not Found');
+   }
+});
 
 app.listen(PORT, () => console.log(`✅ Flux Software v2 running on http://localhost:${PORT}`));
